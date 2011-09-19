@@ -1116,6 +1116,97 @@ CXXFLAGS="$CXXFLAGS_SAVE"
 CPPFLAGS="$CPPFLAGS_SAVE"
 LDFLAGS="$LDFLAGS_SAVE"
 
+########### python
+dnl
+dnl check for python
+dnl
+
+AC_ARG_WITH([python],
+  AC_HELP_STRING([--with-python], [Build with python support @<:@default=yes@:>@]),[],[with_python=yes])
+
+if test "$enable_shared:$with_python" = no:yes; then
+  AC_MSG_WARN([Disabling shared libraries is incompatible with building Python extensions.])
+  AC_MSG_WARN([Ignoring --with-python.])
+  with_python=no
+fi
+
+PYTHON_VERSION=
+PYTHON_INCLUDES=
+if test "$with_python" != "no" ; then
+    if test -x "$with_python/bin/python"
+    then
+        AC_MSG_NOTICE(Found python in $with_python/bin/python)
+        PYTHON="$with_python/bin/python"
+        with_python=yes
+    else
+        if test -x "$with_python"
+        then
+            AC_MSG_NOTICE(Found python in $with_python)
+            PYTHON="$with_python"
+            with_python=yes
+        else
+            if test -x "$PYTHON"
+            then
+                AC_MSG_NOTICE(Found python in environment PYTHON=$PYTHON)
+                with_python=yes
+            fi
+        fi
+    fi
+
+    if test "$with_python" = "yes" ; then
+        AM_PATH_PYTHON(,, [:])
+
+        if test "$PYTHON" != : ; then
+            PYTHON_CONFIG="$PYTHON-config"
+
+            if test -x "$PYTHON_CONFIG"
+            then
+                PYTHON_INCLUDES=`$PYTHON_CONFIG --includes`
+            else
+                if test -r $PYTHON_EXEC_PREFIX/include/python$PYTHON_VERSION/Python.h
+                then
+                    PYTHON_INCLUDES=-I$PYTHON_EXEC_PREFIX/include/python$PYTHON_VERSION
+                else
+                    if test -r $prefix/include/python$PYTHON_VERSION/Python.h
+                    then
+                        PYTHON_INCLUDES=-I$prefix/include/python$PYTHON_VERSION
+                    else
+                        if test -r /usr/include/python$PYTHON_VERSION/Python.h
+                        then
+                            PYTHON_INCLUDES=-I/usr/include/python$PYTHON_VERSION
+                        else
+                            AC_MSG_ERROR([You must install python-devel to build Python bindings])
+                        fi
+                    fi
+                fi
+            fi
+        else
+            AC_MSG_ERROR([You must install python to build Python bindings])
+        fi
+    else
+        AC_MSG_NOTICE([Could not find python in $with_python, disabling bindings])
+        with_python=no
+    fi
+fi
+
+if test "x$with_python" = "xyes"; then
+    AC_DEFINE([HAVE_PYTHON], [1], [libpython presence])
+    AC_SUBST([PYTHON_VERSION])
+    AC_SUBST([PYTHON_INCLUDES])
+
+    PYTHON_LIBS=`$PYTHON_CONFIG --ldflags`
+    PYTHON_CXXFLAGS=`$PYTHON_CONFIG --cflags`
+    
+    
+    LDFLAGS="$LDFLAGS $PYTHON_LIBS"
+    CFLAGS="$CFLAGS $PYTHON_CXXFLAGS"
+    CXXFLAGS="$CXXFLAGS $PYTHON_CXXFLAGS"
+
+fi
+    
+# end of python, it was copied from elsewhere
+############################################
+
 ########### libmagic
 MT_OPTION([libmagic], [disable],
           [filemagic for automatic mimetype recognition],[],[])
@@ -1964,6 +2055,7 @@ echo "sqlite3               : $SQLITE3_STATUS"
 echo "mysql                 : $MYSQL_STATUS"
 ##echo "postgresql          : $PGSQL_OK"
 echo "libjs                 : $JS_OK"
+echo "libpython             : $with_python"
 echo "libmagic              : $LIBMAGIC_STATUS"
 echo "inotify               : $INOTIFY_STATUS"
 echo "libexif               : $LIBEXIF_STATUS"

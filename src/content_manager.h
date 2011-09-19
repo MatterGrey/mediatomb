@@ -415,8 +415,10 @@ protected:
     void destroyLayout();
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
     void initJS();
     void destroyJS();
+#endif    
 #endif
     
     zmm::Ref<RExp> reMimetype;

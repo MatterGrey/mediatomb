@@ -33,8 +33,14 @@
 #define __SCRIPTING_SCRIPT_H__
 
 #define XP_UNIX 1
+#ifdef HAVE_PYTHON
+#include <Python.h>
+#endif
 
+#ifndef HAVE_PYTHON
 #include <jsapi.h>
+#endif
+
 #include "common.h"
 #include "runtime.h"
 #include "cds_objects.h"
@@ -72,7 +78,35 @@ public:
 public:
     Script(zmm::Ref<Runtime> runtime);
     virtual ~Script();
+
+ #ifdef HAVE_PYTHON
     
+    zmm::String getProperty(PyObject *obj, zmm::String name);
+    int getBoolProperty(PyObject *obj, zmm::String name);
+    int getIntProperty(PyObject *obj, zmm::String name, int def);
+    PyObject *getObjectProperty(PyObject *obj, zmm::String name);
+    
+    void setProperty(PyObject *obj, zmm::String name, zmm::String value);
+    void setIntProperty(PyObject *obj, zmm::String name, int value);
+    void setObjectProperty(PyObject *parent, zmm::String name, PyObject *obj);
+    
+    void deleteProperty(PyObject *obj, zmm::String name);
+    
+    PyObject *getGlobalObject();
+    void setGlobalObject(PyObject *glob);
+    
+    //PyContext *getContext();
+    
+    //void defineFunction(zmm::String name, JSNative function, int numParams);
+    //void defineFunctions(JSFunctionSpec *functions);
+    void load(zmm::String scriptPath);
+    void load(zmm::String scriptText, zmm::String scriptPath);
+    
+    zmm::Ref<CdsObject> pyObject2cdsObject(PyObject *py, zmm::Ref<CdsObject> pcd);
+    void cdsObject2PyObject(zmm::Ref<CdsObject> obj, PyObject *py);
+#endif
+
+#ifndef HAVE_PYTHON        
     zmm::String getProperty(JSObject *obj, zmm::String name);
     int getBoolProperty(JSObject *obj, zmm::String name);
     int getIntProperty(JSObject *obj, zmm::String name, int def);
@@ -96,6 +130,8 @@ public:
     
     zmm::Ref<CdsObject> jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd);
     void cdsObject2jsObject(zmm::Ref<CdsObject> obj, JSObject *js);
+#endif
+    
     
     virtual script_class_t whoami() = 0;
 
@@ -112,8 +148,11 @@ protected:
     zmm::Ref<CdsObject> processed;
     
 private:
+    
+#ifndef HAVE_PYTHON        
     JSObject *common_root;
-
+#endif // HAVE_PYTHON
+    
     void initGlobalObject();
     JSScript *_load(zmm::String scriptPath);
     void _execute(JSScript *scr);

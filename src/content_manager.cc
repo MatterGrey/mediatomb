@@ -635,7 +635,9 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
         initLayout();
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
     initJS();
+#endif
 #endif
     
     Ref<Storage> storage = Storage::getInstance();
@@ -664,6 +666,8 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
                     String mimetype = RefCast(obj, CdsItem)->getMimeType();
                     String content_type = mimetype_contenttype_map->get(mimetype);
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
+                    
                     if ((playlist_parser_script != nil) &&
                         (content_type == CONTENT_TYPE_PLAYLIST))
                             playlist_parser_script->processPlaylistObject(obj, task);
@@ -677,7 +681,8 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
 #endif // DVD
 #else
                     if (content_type == CONTENT_TYPE_PLAYLIST)
-                        log_warning("Playlist %s will not be parsed: MediaTomb was compiled without JS support!\n", obj->getLocation().c_str());
+                            log_warning("Playlist %s will not be parsed: MediaTomb was compiled without JS support!\n", obj->getLocation().c_str());
+#endif // PYTHON
 #endif // JS
                 }
                 catch (Exception e)
@@ -1060,6 +1065,8 @@ void ContentManager::addRecursive(String path, bool hidden, Ref<CMTask> task)
                                 rootpath = RefCast(task, CMAddFileTask)->getRootPath();
                             layout->processCdsObject(obj, rootpath);
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
+                            
                             Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
                             String mimetype = RefCast(obj, CdsItem)->getMimeType();
                             String content_type = mappings->get(mimetype);
@@ -1073,6 +1080,7 @@ void ContentManager::addRecursive(String path, bool hidden, Ref<CMTask> task)
                                     dvd_import_script->processDVDObject(obj);
 #endif // DVD
 
+#endif // PYTHON
 #endif // JS
                         }
                         catch (Exception e)
@@ -1489,6 +1497,8 @@ void ContentManager::initLayout()
 }
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
+
 void ContentManager::initJS()
 {
     if (playlist_parser_script == nil)
@@ -1510,6 +1520,7 @@ void ContentManager::destroyJS()
 #endif
 }
 
+#endif // HAVE_PYTHON
 #endif // HAVE_JS
 
 void ContentManager::destroyLayout()

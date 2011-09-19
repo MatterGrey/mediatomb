@@ -45,7 +45,10 @@ public:
     void processCdsObject(zmm::Ref<CdsObject> obj, zmm::String rootpath);
     virtual script_class_t whoami() { return S_IMPORT; }
 private:
+
+#ifndef HAVE_PYTHON        
     JSObject *root;
+#endif //HAVE_PYTHON        
 };
 
 #endif // __SCRIPTING_IMPORT_SCRIPT_H__

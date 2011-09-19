@@ -129,6 +129,18 @@ void _log_js(const char *format, ...)
     FLUSHIT
     va_end(ap);
 }
+void _log_py(const char *format, ...)
+{
+    va_list ap;
+    LOGCHECK
+    va_start(ap, format);
+    log_stamp("PY");
+    vfprintf(LOG_FILE, format, ap);
+    FLUSHIT
+    va_end(ap);
+}
+
+
 void _log_debug(const char *format, const char *file, int line, const char *function, ...)
 {
     bool enabled;

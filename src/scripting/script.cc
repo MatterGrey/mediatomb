@@ -34,6 +34,7 @@
 #endif
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
 
 #include "script.h"
 #include "tools.h"
@@ -453,8 +454,8 @@ static intN map(void *rp, const char *name, void *data)
 }
 */
 
-Script::~Script()
-{
+Script::~Script(){
+
 #ifdef JS_THREADSAFE
     JS_SetContextThread(cx);
     JS_BeginRequest(cx);
@@ -1111,4 +1112,278 @@ Ref<CdsObject> Script::getProcessedObject()
     return processed;
 }
 
+#endif // HAVE_PYTHON
 #endif // HAVE_JS
+
+/* *************************************************************************************** */
+
+#ifdef HAVE_PYTHON
+
+#include <Python.h>
+#include "structmember.h"
+
+#include "script.h"
+#include "tools.h"
+#include "metadata_handler.h"
+//#include "js_functions.h"
+//#include "config_manager.h"
+
+
+/*****************************************/
+typedef struct 
+{
+        PyObject_HEAD
+        /* Type-specific fields go here. */
+        PyObject *path;
+        PyObject *location;
+        
+} mediatomb_MediaTombObject;
+
+
+// --------------
+
+
+
+static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
+        log_py("init me silly\n");
+
+        Py_INCREF(self->path);
+        self->path =  PyString_FromString("");;
+        
+        Py_INCREF(self->location);
+        self->location =  PyString_FromString("");;
+        log_py("init that \n");
+        return 0;
+}
+
+
+static PyObject* mediatomb_getObj(PyObject *self, PyObject *args) {
+        return Py_BuildValue("s", "42");
+}
+
+static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
+
+        int argc = PyTuple_Size(args);
+
+        register int count ;
+        int str_len = 1;        
+        char *str = (char *) malloc(str_len); // for the null terminator
+        str[0] = '\0';
+        
+        for (count = 0; count < argc; count++) {
+                PyObject* item = PyTuple_GetItem(args, count);
+                // if we can make in to a string then, well string it.
+                if(PyString_Check(item)){                        
+                        char * s = PyString_AsString(item);
+                        str_len  += strlen(s);
+                        str = (char*) realloc(str, str_len);
+                        strncat(str, s, str_len);
+                }else{
+                        // maybe throw an WTFException  ?
+                        log_py("I haz object that I's can't print \n");                        
+                }
+        }
+        str[str_len] = '\0';
+        log_py("%s\n",str);
+        Py_RETURN_NONE;
+        
+}
+
+
+
+static void
+MediaTomb_dealloc(mediatomb_MediaTombObject* self)
+{
+        log_py("bye-bye memory");
+        Py_XDECREF(self->path);
+        Py_XDECREF(self->location);
+        self->ob_type->tp_free((PyObject*)self);
+}
+
+static PyObject *
+MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+        log_py("hello new world");
+        mediatomb_MediaTombObject *self;
+        self = (mediatomb_MediaTombObject *)type->tp_alloc(type, 0);
+
+        if (self != NULL) {
+                self->path = PyString_FromString("");
+                if (self->path == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                self->location = PyString_FromString("");
+                if (self->location == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                //self->number = 0;
+        }
+        return (PyObject *)self;
+}
+
+static PyMemberDef MediaTomb_Members[] = {
+        {(char *)"path", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, path), 0,
+         (char *)"path"
+        }
+        ,
+        {(char *)"location", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, location), 0,
+         (char *)"location"
+        }
+        ,
+        {NULL
+        }
+        /* Sentinel */
+};
+
+
+
+static PyMethodDef MediaTomb_Methods[] = {
+        // {"__init__", mediatomb_init,METH_NOARGS,"initialize mediatomb" },
+        
+        {"getObj", mediatomb_getObj , METH_NOARGS , "Return current Media Object"},
+        {"log"   , mediatomb_log    , METH_VARARGS, "print to mediatomb logger"  },
+        {NULL, NULL, 0, NULL}
+};
+
+/****************************************/
+
+
+static PyTypeObject mediatomb_MediaTombType = {
+        PyObject_HEAD_INIT(NULL)
+        0,                                 /*ob_size*/
+        "mediatomb.MediaTomb",             /*tp_name*/
+        sizeof(mediatomb_MediaTombObject), /*tp_basicsize*/
+        0,                                 /*tp_itemsize*/
+        (destructor)MediaTomb_dealloc,     /*tp_dealloc*/
+        0,                                 /*tp_print*/
+        0,                                 /*tp_getattr*/
+        0,                                 /*tp_setattr*/
+        0,                                 /*tp_compare*/
+        0,                                 /*tp_repr*/
+        0,                                 /*tp_as_number*/
+        0,                                 /*tp_as_sequence*/
+        0,                                 /*tp_as_mapping*/
+        0,                                 /*tp_hash */
+        0,                                 /*tp_call*/
+        0,                                 /*tp_str*/
+        0,                                 /*tp_getattro*/
+        0,                                 /*tp_setattro*/
+        0,                                 /*tp_as_buffer*/
+        Py_TPFLAGS_DEFAULT| Py_TPFLAGS_BASETYPE, /*tp_flags*/
+        "MediaTomb objects",               /* tp_doc */
+        0,                                 /* tp_traverse */
+        0,                                 /* tp_clear */
+        0,                                 /* tp_richcompare */
+        0,                                 /* tp_weaklistoffset */
+        0,                                 /* tp_iter */
+        0,                                 /* tp_iternext */
+        MediaTomb_Methods,                 /* tp_methods */
+        MediaTomb_Members,                 /* tp_members */
+        0,                                 /* tp_getset */
+        0,                                 /* tp_base */
+        0,                                 /* tp_dict */
+        0,                                 /* tp_descr_get */
+        0,                                 /* tp_descr_set */
+        0,                                 /* tp_dictoffset */
+        (initproc)mediatomb_init,          /* tp_init */
+        0,                                 /* tp_alloc */
+        MediaTomb_new,                     /* tp_new */
+};
+
+
+#ifndef PyMODINIT_FUNC/* declarations for DLL import/export */
+#define PyMODINIT_FUNC void
+#endif
+PyMODINIT_FUNC
+init_mediatomb(void)
+{
+
+        PyObject* m;
+
+        if (PyType_Ready(&mediatomb_MediaTombType) < 0)
+                return;
+
+        m = Py_InitModule3("mediatomb", MediaTomb_Methods,
+                           "Example module that creates an extension type.");
+
+        Py_INCREF(&mediatomb_MediaTombType);
+        PyModule_AddObject(m, "MediaTomb", (PyObject *)&mediatomb_MediaTombType);
+
+}
+
+
+
+// --------------
+
+
+
+/****************************************/
+using namespace zmm;
+
+Script::Script(Ref<Runtime> runtime) : Object()
+{
+        log_py("Pyton Engine, ver%s\n" , Py_GetVersion() );
+
+                
+        this->runtime = runtime;
+        rt = runtime->getRT();
+
+        /* start up my python runtime */ 
+        Py_Initialize();
+        init_mediatomb();
+}
+
+
+Script::~Script()
+{
+
+        log_py("I's going to dine now\n");
+
+        Py_Finalize();
+}
+
+
+void Script::load(zmm::String scriptPath)
+{
+        /* if (script)
+        JS_DestroyScript(cx, script);
+
+    script = _load((scriptPath));
+        */
+
+        
+        log_py("Loading %s\n" ,scriptPath.c_str() );
+
+        PyObject* PyFileObject = PyFile_FromString((char *)scriptPath.c_str(), (char *)"r");
+        PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)scriptPath.c_str());
+
+}
+
+void Script::execute()
+{
+
+        log_py("EXECUTING\n");
+        
+}
+               
+Ref<CdsObject> Script::pyObject2cdsObject(PyObject *py, zmm::Ref<CdsObject> pcd)
+{
+}
+
+
+void Script::setObjectProperty(PyObject *parent, String name, PyObject *obj)
+{
+
+}
+
+PyObject *Script::getObjectProperty(PyObject *obj, String name)
+{
+}
+
+
+
+#endif // HAVE_PYTHON

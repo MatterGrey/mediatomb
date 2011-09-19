@@ -34,6 +34,7 @@
 #endif
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
 
 #include "playlist_parser_script.h"
 #include "config_manager.h"
@@ -253,4 +254,5 @@ PlaylistParserScript::~PlaylistParserScript()
 #endif
 
 }
+#endif // HAVE_PYTHON
 #endif // HAVE_JS

@@ -34,6 +34,7 @@
 #endif
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
 
 #include "import_script.h"
 #include "config_manager.h"
@@ -126,4 +127,68 @@ ImportScript::~ImportScript()
 
 }
 
+#endif // HAVE_PYTHON        
 #endif // HAVE_JS
+
+#ifdef HAVE_PYTHON
+
+#include "import_script.h"
+#include "config_manager.h"
+
+
+using namespace zmm;
+
+ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
+{
+    String scriptPath = ConfigManager::getInstance()->getOption(CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT);
+
+    try 
+    {
+        load(scriptPath);
+    }
+    catch (Exception ex)
+    {
+            throw ex;
+    }
+}
+void ImportScript::processCdsObject(Ref<CdsObject> obj, String rootpath)
+{
+
+    processed = obj;
+    try 
+    {
+/*        JSObject *orig = JS_NewObject(cx, NULL, NULL, glob);
+        setObjectProperty(glob, _("orig"), orig);
+        cdsObject2jsObject(obj, orig);
+        setProperty(glob, _("object_root_path"), rootpath);
+        execute();
+*/
+    }
+    catch (Exception ex)
+    {
+        processed = nil;
+        throw ex;
+    }
+
+    processed = nil;
+/*
+    gc_counter++;
+    if (gc_counter > JS_CALL_GC_AFTER_NUM)
+    {
+        JS_MaybeGC(cx);
+        gc_counter = 0;
+    }
+*/
+}
+
+ImportScript::~ImportScript()
+{
+    
+/*    if (root)
+        JS_RemoveRoot(cx, &root);
+*/
+
+    
+}
+
+#endif //HAVE_PYTHON        

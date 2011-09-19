@@ -34,6 +34,7 @@
 #endif
 
 #ifdef HAVE_JS
+#ifndef HAVE_PYTHON
 
 #include "js_functions.h"
 
@@ -369,4 +370,5 @@ JSBool js_j2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 } // extern "C"
 
+#endif //HAVE_PYTHON
 #endif //HAVE_JS
