@@ -1,0 +1,20 @@
+Upgrading to mediatomb_0.12.0~svn2018-1
+--------------------------------------------------------------------------
+If you are upgrading mediatomb-daemon to the Debian package version
+0.12.0~svn2018-1, the sqlite database file /var/lib/mediatomb/sqlite3.db will be
+copied to /var/lib/mediatomb/mediatomb.db. This is taken care of by the
+maintainer scripts. The old sqlite3.db is kept as a backup.
+--------------------------------------------------------------------------
+
+Upgrading to mediatomb-0.10.0.dfsg1
+--------------------------------------------------------------------------
+If you are upgrading mediatomb-daemon to the Debian package version
+0.10.0.dfsg1, you will need to remove the old init and default scripts that
+were named "mediatomb-daemon" and remove the system startup links for the old
+script. This upgrade will make no attempt to remove the old files. Here's a
+quick command line example of what should be done.
+
+rm /etc/init.d/mediatomb-daemon
+rm /etc/default/mediatomb-daemon
+update-rc.d mediatomb-daemon remove
+--------------------------------------------------------------------------

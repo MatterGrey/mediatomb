@@ -1,0 +1,304 @@
+This package was debianized by Leonhard Wimmer <leo@mediatomb.cc> on
+Sun,  1 Apr 2007 15:30:11 +0200
+
+It was later redebianized by Andres Mejia <mcitadel@gmail.com> on
+Fri, 28 Dec 2007 16:45:04 -0500
+
+It was downloaded from http://mediatomb.cc/
+
+Files: debian/*
+Copyright: (C) 2007-2008 Leonhard Wimmer <leo@mediatomb.cc>
+           (C) 2007-2008 Andres Mejia <mcitadel@gmail.com>
+License: GPL-2
+   The Debian packaging information is under the GPL, version 2.
+
+Files: source/uuid/*
+Copyright: (C) 1996, 1997, 1998 Theodore Ts'o. <tytso at mit dot edu>
+License: LGPL-any
+   uuid from E2fsprogs 1.35. Some functions from the UPnP SDK were
+   conflicting with libuuid, so the sources had to be taken in and some
+   renaming needed to be done.
+
+Files: src/md5/md5.c
+Copyright: (C) 1999 Aladdin Enterprises.  All rights reserved.
+License: other
+   This software is provided 'as-is', without any express or implied
+   warranty.  In no event will the authors be held liable for any damages
+   arising from the use of this software.
+
+   Permission is granted to anyone to use this software for any purpose,
+   including commercial applications, and to alter it and redistribute it
+   freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.
+   2. Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.
+   3. This notice may not be removed or altered from any source distribution.
+
+   L. Peter Deutsch
+   ghost@aladdin.com
+
+   Independent implementation of MD5 (RFC 1321).
+
+   This code implements the MD5 Algorithm defined in RFC 1321.
+   It is derived directly from the text of the RFC and not from the
+   reference implementation.
+
+   The original and principal author of md5.c is L. Peter Deutsch
+   <ghost@aladdin.com>.  Other authors are noted in the change history
+   that follows (in reverse chronological order):
+
+   1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
+   1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5).
+   1999-05-03 lpd Original version.
+
+Files: src/md5/md5.h
+Copyright: (C) 1999 Aladdin Enterprises.  All rights reserved.
+License: other
+   This software is provided 'as-is', without any express or implied
+   warranty.  In no event will the authors be held liable for any damages
+   arising from the use of this software.
+
+   Permission is granted to anyone to use this software for any purpose,
+   including commercial applications, and to alter it and redistribute it
+   freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.
+   2. Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.
+   3. This notice may not be removed or altered from any source distribution.
+
+   L. Peter Deutsch
+   ghost@aladdin.com
+
+   Independent implementation of MD5 (RFC 1321).
+
+   This code implements the MD5 Algorithm defined in RFC 1321.
+   It is derived directly from the text of the RFC and not from the
+   reference implementation.
+
+   The original and principal author of md5.h is L. Peter Deutsch
+   <ghost@aladdin.com>.  Other authors are noted in the change history
+   that follows (in reverse chronological order):
+
+   1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
+   1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5);
+     added conditionalization for C++ compilation from Martin
+     Purschke <purschke@bnl.gov>.
+   1999-05-03 lpd Original version.
+
+Files: tombupnp/upnp/src/uuid/upnp_md5.c tombupnp/upnp/src/inc/upnp_md5.h
+Copyright: Public Domain
+License: public domain
+   The code used in these files come directly from dpkg.
+
+   This code implements the MD5 message-digest algorithm.
+   The algorithm is due to Ron Rivest.  This code was
+   written by Colin Plumb in 1993, no copyright is claimed.
+   This code is in the public domain; do with it what you wish.
+
+   Equivalent code is available from RSA Data Security, Inc.
+   This code has been tested against that, and is equivalent,
+   except that you don't need to include two pages of legalese
+   with every copy.
+
+   To compute the message digest of a chunk of bytes, declare an
+   MD5Context structure, pass it to MD5Init, call MD5Update as
+   needed on buffers full of bytes, and then call MD5Final, which
+   will fill a supplied 16-byte array with the digest.
+
+   Changed so as no longer to depend on Colin Plumb's `usual.h' header
+   definitions; now uses stuff from dpkg's config.h.
+    - Ian Jackson <ian@chiark.greenend.org.uk>.
+   Still in the public domain.
+
+Files: web/js/md5.js
+Copyright: (C) 1998 - 2009, Paul Johnston & Contributors
+License: BSD-3
+   A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+   Digest Algorithm, as defined in RFC 1321.
+   Version 2.1 Copyright (C) Paul Johnston 1999 - 2002.
+   Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+   Distributed under the BSD License
+   See http://pajhome.org.uk/crypt/md5 for more info.
+
+   The BSD license used for this file is given at
+   http://pajhome.org.uk/site/legal.html#bsdlicense and is repeated below.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer. Redistributions in binary
+   form must reproduce the above copyright notice, this list of conditions and
+   the following disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+   Neither the name of the author nor the names of its contributors may be used
+   to endorse or promote products derived from this software without specific
+   prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+   POSSIBILITY OF SUCH DAMAGE.
+
+Files: web/js/prototype.js
+Copyright: (C) 2005-2008 Sam Stephenson
+License: other
+   Prototype is freely distributable under the terms of an MIT-style license.
+   For details, see the Prototype web site: http://www.prototypejs.org/
+
+   A copy of the license can be downloaded from
+   http://dev.rubyonrails.org/browser/spinoffs/prototype/trunk/LICENSE?format=raw
+   This is a copy of the license found on the website:
+   Copyright (c) 2005-2008 Sam Stephenson
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+Files: web/js/nanotree.js
+Copyright: (C) 2003 Martin Mouritzen <martin at nano dot dk>
+           (C) 2006 by Leonhard Wimmer (leo@mediatomb.org)
+License: LGPL-any
+   File header does not specify a year for original author however CVS entry in
+   Sourceforge specifies that file was last modified sometime in April 2003.
+   More changes were made later by Leonhard Wimmer.
+
+   (heavily modified version of) NanoTree http://nanotree.sourceforge.net/.
+   According to http://nanotree.sourceforge.net/ this file is published under
+   the LGPL License
+
+Files: web/js/iepngfix.htc
+Copyright: (C) 2004-2008 Angus Turnbull http://www.twinhelix.com
+License: LGPL-2.1+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+   USA
+
+Files: tombupnp/*
+Copyright: (C) 2000-2003 Intel Corporation
+           (C) 2006-2008 Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+License: BSD-3 | LGPL-2.1
+   tombupnp is based on pupnp (http://pupnp.sf.net) which is based on libupnp
+   (http://upnp.sf.net), originally distributed under the BSD license,
+   Copyright (c) 2000-2003 Intel Corporation. Note that all changes to libupnp
+   /pupnp code that were made by the MediaTomb team are covered by the LGPL
+   license.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+   * Neither name of Intel Corporation nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL INTEL OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+   OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: acinclude.m4
+Copyright: (C) 2006 Steven G. Johnson <stevenj@alum.mit.edu>
+License: GPL-2+
+   ACX_PTHREAD autoconf script from http://autoconf-archive.cryp.to/
+
+Files: src/inotify-nosys.h
+Copyright: (C) 2005 John McCutchan
+           (C) 2006 Rohan McGovern <rohan@mcgovern.id.au>
+License: GPL-2+
+   This header is found in inotify-tools which can be downloaded from
+   http://inotify-tools.sourceforge.net/.
+
+Files: src/mt_inotify.cc
+Copyright: (C) 2006 Rohan McGovern  <rohan@mcgovern.id.au>
+           (C) 2005-2008 Gena Batyan <bgeradz@mediatomb.cc>
+           (C) 2005-2008 Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+           (C) 2006-2008 Leonhard Wimmer <leo@mediatomb.cc>
+License: GPL-2
+   This file was primarily written by the Mediatomb developers. The original
+   version of the next_events function was taken from inotify-tools.
+
+Files: *
+Copyright: (C) 2005-2008 Gena Batyan <bgeradz@mediatomb.cc>
+           (C) 2005-2008 Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+           (C) 2006-2008 Leonhard Wimmer <leo@mediatomb.cc>
+License: GPL-2
+   All other files that have not been mentioned above were developed by the
+   main Mediatomb developers. Some small contributions have been made to
+   Mediatomb and the contributors are noted in the README file.
+
+   This package is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2
+   as published by the Free Software Foundation.
+
+   This package is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   version 2 along with MediaTomb; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+
+Below is the locations on any Debian system for the complete text of some of the licenses used in this package.
+
+The complete text of the GNU General Public License can be found in
+`/usr/share/common-licenses/GPL'.
+
+The complete text of the GNU General Public License, version 2 can be found in
+`/usr/share/common-licenses/GPL-2'.
+
+The complete text of the GNU Lesser General Public License can be found in
+`/usr/share/common-licenses/LGPL'.
+
+The complete text of the GNU Lesser General Public License, version 2.1 can be
+found in `/usr/share/common-licenses/LGPL-2.1'.

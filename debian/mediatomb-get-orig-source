@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# This script is used to download the upstream source for mediatomb and
+# generate it into an orig source tarball for Debian.
+
+# Common variables used to ease maintenance of this script
+MEDIATOMB_TARBALL="mediatomb-0.12.1.tar.gz"
+MEDIATOMB_TARBALL_CHECKSUM="31163c34a7b9d1c9735181737cb31306f29f1f2a0335fb4f53ecccf8f62f11cd"
+MEDIATOMB_VERSION="0.12.1"
+
+USAGE="\n\
+This script is used to generate the orig tarball used in building\n\
+Debian packages for mediatomb-$MEDIATOMB_VERSION.\n\
+Usage: mediatomb-get-orig-source [OPTION]\n\
+\n\
+ -h, --help                 Display this help message.\n"
+
+while [ "$#" -gt "0" ]
+do
+    case "$1" in
+        -h|--help)
+            echo "${USAGE}"
+            exit 1
+            ;;
+    esac
+done
+
+make_current_tarball() {
+    # Download the tarball if it's not available in the current directory
+    [ -f $MEDIATOMB_TARBALL ] || \
+        wget -c http://downloads.sourceforge.net/mediatomb/$MEDIATOMB_TARBALL
+
+    # Verify the checksum
+    COMPUTED_CHECKSUM=`sha256sum $MEDIATOMB_TARBALL | cut -d ' ' -f 1`
+    if [ $MEDIATOMB_TARBALL_CHECKSUM != $COMPUTED_CHECKSUM ] ; then
+        echo "Checksum verification failed. Checksum was $COMPUTED_CHECKSUM
+    Expected checksum $MEDIATOMB_TARBALL_CHECKSUM."
+        exit 1
+    else
+        echo "Checksum verified. Checksum is $COMPUTED_CHECKSUM."
+    fi
+
+    mv $MEDIATOMB_TARBALL mediatomb_$MEDIATOMB_VERSION.orig.tar.gz
+}
+
+make_current_tarball

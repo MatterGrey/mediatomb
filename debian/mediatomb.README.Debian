@@ -1,0 +1,5 @@
+The package "mediatomb" simply installs the desktop file to access the web ui
+and also acts as a virtual package that will install the main mediatomb packages
+that contain the program, and the mediatomb init scripts.
+
+The main documentation for mediatomb is under /usr/share/doc/mediatomb-common.

@@ -1,0 +1,4 @@
+debug-mode-fix.patch
+config_xml_comment.patch
+const_char_conversion.patch
+autoreconf_-fi.patch

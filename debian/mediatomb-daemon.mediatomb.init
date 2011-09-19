@@ -1,0 +1,214 @@
+#! /bin/sh
+#
+# MediaTomb initscript
+#
+# Original Author: Tor Krill <tor@excito.com>.
+# Modified by:     Leonhard Wimmer <leo@mediatomb.cc>
+# Modified again by Andres Mejia <mcitadel@gmail.com> to
+# base it off of /etc/init.d/skeleton
+#
+#
+
+### BEGIN INIT INFO
+# Provides:          mediatomb
+# Required-Start:    $local_fs $network $remote_fs
+# Required-Stop:     $local_fs $network $remote_fs
+# Should-Start:      $all
+# Should-Stop:       $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: upnp media server
+### END INIT INFO
+
+# Do NOT "set -e"
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+DESC="upnp media server"
+NAME=mediatomb
+DAEMON=/usr/bin/$NAME
+PIDFILE=/var/run/$NAME.pid
+LOGFILE=/var/log/$NAME.log
+SCRIPTNAME=/etc/init.d/$NAME
+DEFAULT=/etc/default/$NAME
+
+# Exit if the package is not installed
+[ -x "$DAEMON" ] || exit 0
+
+# Read configuration variable file if it is present
+[ -r $DEFAULT ] && . $DEFAULT
+
+# Load the VERBOSE setting and other rcS variables
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# Start the daemon if NO_START is disabled in DEFAULT
+if [ "$NO_START" = "yes" ] && [ "$1" != "stop" ]; then
+	log_warning_msg "$NAME: Not starting $DESC."
+	log_warning_msg "$NAME: Disabled in $DEFAULT."
+	exit 0
+fi
+
+# Run as root if USER not specified
+if [ ! $USER ]; then
+	USER=root
+fi
+
+# Check for an invalid user or one without a home directory
+eval USERHOME=~$USER
+if [ "${USERHOME#/}" = "${USERHOME}" ]; then
+	log_failure_msg "$NAME: The user '$USER' specified in $DEFAULT is invalid."
+	exit 1
+fi
+
+# Check if group is not specified and assign a proper group
+if [ -z $GROUP ]; then
+    GROUP="$USER"
+fi
+
+if [ "$INTERFACE" != "" ] ; then
+    INTERFACE_ARG="-e $INTERFACE"
+else
+    INTERFACE_ARG=""
+fi
+
+DAEMON_ARGS="-c /etc/mediatomb/config.xml -d -u $USER -g $GROUP -P $PIDFILE -l $LOGFILE $INTERFACE_ARG $OPTIONS"
+
+#
+#       Function that starts the daemon/service.
+#
+do_start() {
+	# Return
+	#   0 if daemon has been started
+	#   1 if daemon was already running
+	#   2 if daemon could not be started
+	touch $PIDFILE
+	chown $USER:$GROUP $PIDFILE
+	touch $LOGFILE
+	chown $USER:$GROUP $LOGFILE
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON \
+		--test > /dev/null \
+		|| return 1
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+		$DAEMON_ARGS \
+		|| return 2
+}
+
+#
+#       Function that stops the daemon/service.
+#
+do_stop() {
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   2 if daemon could not be stopped
+	#   other if a failure occurred
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+	RETVAL="$?"
+	[ "$RETVAL" = 2 ] && return 2
+	rm -f $PIDFILE
+	return "$RETVAL"
+}
+
+#
+#       Function that sends a SIGHUP to the daemon/service.
+#
+do_reload() {
+	start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
+	return 0
+}
+
+case "$1" in
+  start)
+	if [ -n "$INTERFACE" ]; then
+		# try to add the multicast route
+		if [ "$VERBOSE" != no ]; then
+			{
+				log_action_begin_msg \
+				"$NAME: Trying to add the multicast route"
+				$ROUTE_ADD $INTERFACE \
+				&& log_action_end_msg 0
+			} || {
+				true && \
+				log_warning_msg "Failed to add multicast route. skipping."
+			}
+		else
+			$ROUTE_ADD $INTERFACE >/dev/null 2>&1 || true
+		fi
+	fi
+	log_daemon_msg "Starting $DESC" "$NAME"
+	do_start
+	case "$?" in
+		0) log_end_msg 0 ;;
+		1) log_warning_msg "$DESC" "'$NAME'" "was already started" ;;
+		2) log_end_msg 1 ;;
+	esac
+	;;
+  stop)
+	log_daemon_msg "Stopping $DESC" "$NAME"
+	do_stop
+	case "$?" in
+		0)
+			log_end_msg 0
+			if [ -n "$INTERFACE" ]; then
+				# try to add the multicast route
+				if [ "$VERBOSE" != no ]; then
+				{
+					log_action_begin_msg \
+					"$NAME: Trying to delete the multicast route"
+					$ROUTE_DEL $INTERFACE \
+					&& log_action_end_msg 0
+				} || {
+					true && \
+					log_warning_msg \
+					"Failed to delete multicast route. skipping."
+				}
+				else
+					$ROUTE_DEL $INTERFACE >/dev/null 2>&1 || true
+				fi
+			fi
+			;;
+		1) log_warning_msg "$DESC" "'$NAME'" "was already stopped" ;;
+		2) log_end_msg 1 ;;
+	esac
+	;;
+  reload|force-reload)
+	log_daemon_msg "Reloading $DESC" "$NAME"
+	do_reload
+	log_end_msg $?
+  	;;
+  restart)
+        #
+        #       If the "reload" option is implemented, move the "force-reload"
+        #       option to the "reload" entry above. If not, "force-reload" is
+        #       just the same as "restart".
+        #
+	log_daemon_msg "Restarting $DESC" "$NAME"
+	do_stop
+	case "$?" in
+	  0|1)
+		sleep 1
+		do_start
+		case "$?" in
+			0) log_end_msg 0 ;;
+			1) log_end_msg 1 ;; # Old process is still running
+			*) log_end_msg 1 ;; # Failed to start
+		esac
+		;;
+	  *)
+	  	# Failed to stop
+		log_end_msg 1
+		;;
+	esac
+	;;
+  *)
+	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	exit 3
+	;;
+esac
+
+:

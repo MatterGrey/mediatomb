@@ -1,0 +1,4 @@
+# This is purposely done so that mediatomb's web ui will be accessed through a
+# user's default web browser.
+mediatomb: desktop-command-not-in-package /usr/share/applications/mediatomb.desktop /usr/bin/x-www-browser
+mediatomb: menu-command-not-in-package /usr/share/menu/mediatomb:5 /usr/bin/x-www-browser

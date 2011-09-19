@@ -1,0 +1,31 @@
+Here's a list of issues brought up by Paul Wise <pabs@debian.org>.
+
+This is not a complete list as some of the issues are being resolved.
+--------------------------------------------------------------------------
+
+src/uuid looks like a copy of libuuid, if your package gets uploaded,
+please notify the security team that your package contains an embedded
+copy of libuuid. Please also suggest to upstream that they remove it
+from the source and instead depend on an external libuuid from
+http://sourceforge.net/projects/e2fsprogs for example.
+
+Same for tombupnp, that looks like a modified copy of libupnp, try to
+get that merged into upstream libupnp: http://pupnp.sourceforge.net/
+
+You also embed external JS libraries (each one js file), I'm not sure
+what debian policy about that is, although we now have fckeditor in
+the archive, so maybe package them up so other packages can depend on
+them? Might want to bring this up on the debian-webapps list.
+
+Do you have access to upstream SVN? If so, I suggest moving the
+.desktop file there so other distros may benefit from it too.
+Obviously you'd also need to add a ./configure flag so that
+distributions can choose which web browser to launch. Possibly the
+same for debian/config.xml.inst, but I'm not too sure about that.
+
+--------------------------------------------------------------------------
+
+Other TODOs, some of which are not Debian specific but still worth mentioning.
+--------------------------------------------------------------------------
+Ensure that the WebUI works under any Mozilla based browser. There's a known
+problem with the WebUI under Konqueror.

@@ -1,0 +1,113 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# These are from the autotools-dev package documentation.
+# /usr/share/doc/autotools-dev/README.Debian.gz
+# from the section titled "Calling GNU configure properly"
+export DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+export DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+# FOR AUTOCONF 2.52 AND NEWER ONLY
+ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
+  confflags += --build $(DEB_HOST_GNU_TYPE)
+else
+  confflags += --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
+endif
+
+# CFLAGS, CXXFLAGS, and LDFLAGS to use. Allowing them to be overriden.
+DEFAULT_CFLAGS = -Wall -g
+DEFAULT_CXXFLAGS = -Wall -g
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+   DEFAULT_CFLAGS += -O0
+   DEFAULT_CXXFLAGS += -O0
+else
+   DEFAULT_CFLAGS += -O2
+   DEFAULT_CXXFLAGS += -O2
+endif
+ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+    MEDIATOMB_DEBUG_OPTIONS += --enable-debug-malloc0 \
+			--enable-tombdebug \
+			--enable-upnpdebug \
+			--enable-debug-log
+endif
+DEB_CFLAGS ?= $(DEFAULT_CFLAGS)
+DEB_CXXFLAGS ?= $(DEFAULT_CXXFLAGS)
+DEB_LDFLAGS ?= -Wl,-z,defs
+
+# Implement a MEDIATOMB_CONFIG_OPTIONS variable that sets the default configure
+# options and allow it to be overridden.
+# Use DEB_HOST_ARCH_OS from dpkg-architecture to determine OS we're building
+# for.
+export DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
+ifeq (linux,$(DEB_HOST_ARCH_OS))
+   ENABLE_INOTIFY = --enable-inotify
+endif
+MEDIATOMB_CONFIG_OPTIONS ?= $(confflags) \
+			--prefix=/usr \
+			--mandir=\$${prefix}/share/man \
+			--infodir=\$${prefix}/share/info \
+			--enable-sqlite3 \
+			--enable-mysql \
+			--enable-libjs \
+			--enable-libmagic \
+			$(ENABLE_INOTIFY) \
+			--enable-libexif \
+			--enable-taglib \
+			--disable-libdvdnav \
+			--enable-ffmpeg \
+			--enable-ffmpegthumbnailer \
+			--enable-external-transcoding \
+			--enable-curl \
+			--enable-youtube \
+			--enable-weborama \
+			--enable-atrailers \
+			--enable-sopcast \
+			--enable-db-autocreate \
+			--disable-id3lib \
+			--disable-libmp4v2 \
+			--disable-libextractor \
+			--disable-lastfmlib \
+			$(MEDIATOMB_DEBUG_OPTIONS) \
+			CFLAGS="$(DEB_CFLAGS)" \
+			CXXFLAGS="$(DEB_CXXFLAGS)" \
+			LDFLAGS="$(DEB_LDFLAGS)"
+
+$(info DEB_BUILD_OPTIONS = $(DEB_BUILD_OPTIONS))
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	chmod a+x configure configure_aux/*
+	./configure $(MEDIATOMB_CONFIG_OPTIONS)
+
+override_dh_auto_install:
+	dh_auto_install
+	install -m 0755 -d $(CURDIR)/debian/tmp/var/lib/mediatomb
+	install -D -m 0644 debian/config.xml.dist \
+		$(CURDIR)/debian/tmp/etc/mediatomb/config.xml
+	install -D -m 0644 artwork/mediatomb.xpm \
+		$(CURDIR)/debian/tmp/usr/share/pixmaps/mediatomb.xpm
+	install -D -m 0644 debian/mediatomb.desktop \
+		$(CURDIR)/debian/tmp/usr/share/applications/mediatomb.desktop
+	$(RM) -f $(CURDIR)/debian/tmp/usr/share/mediatomb/web/js/prototype.js
+
+override_dh_install:
+	dh_install --sourcedir=debian/tmp
+
+override_dh_installchangelogs:
+	dh_installchangelogs ChangeLog
+
+override_dh_installinit:
+	dh_installinit --name=mediatomb \
+		--update-rcd-params='defaults 98 02'
+
+override_dh_installlogrotate:
+	dh_installlogrotate --name=mediatomb
+
+get-orig-source:
+# Use external script
+	$(dir $_)mediatomb-get-orig-source

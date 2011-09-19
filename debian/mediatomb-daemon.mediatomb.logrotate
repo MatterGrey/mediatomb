@@ -1,0 +1,8 @@
+"/var/log/mediatomb.log" {
+	weekly
+	rotate 12
+	missingok
+	postrotate
+		pkill -HUP mediatomb
+	endscript
+}
