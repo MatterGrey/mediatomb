@@ -920,7 +920,43 @@ if ((test "x$SQLITE3_STATUS" != xyes) && (test "x$MYSQL_STATUS" != xyes)); then
     AC_MSG_ERROR(Support of at least one of mysql or sqlite3 must be configured)
 fi
 
+######### Run Time 
+
+AC_ARG_ENABLE(scripting,
+        AC_HELP_STRING([--enable-scripting], [compile with scripting support (default: python)]),
+        [
+          SCRIPT_LIB=$enableval 
+          if test "x$enableval" = xno; then
+              SCRIPT_LIB=disable
+          else
+              SCRIPT_OK=yes
+              AC_DEFINE([HAVE_SCRIPTING], [1], [scripting enabled presence])
+          fi
+
+          if   test "x$enableval" = xpython     ; then
+               SCRIPT_LIB=python
+          elif test "x$enableval" = xjavascript ; then
+               SCRIPT_LIB=javascript
+          elif test "x$enableval" = xnone        ; then
+              SCRIPT_OK=no
+              SCRIPT_LIB=disable
+          else
+              echo
+              echo "Error!"
+              echo "Unknown scripting engine selected. "
+              echo "please chose one of 'python','javascript' or 'none'"
+              exit -1
+          fi
+        ],
+        [
+              SCRIPT_OK=yes
+              SCRIPT_LIB=python
+        ]
+          
+    )
+
 ######### javascript
+if test "x$SCRIPT_LIB" = xjavascript; then 
 
 AC_ARG_ENABLE(libjs,
               AC_HELP_STRING([--enable-libjs], [compile with spidermonkey support (default: yes)]),
@@ -1116,10 +1152,15 @@ CXXFLAGS="$CXXFLAGS_SAVE"
 CPPFLAGS="$CPPFLAGS_SAVE"
 LDFLAGS="$LDFLAGS_SAVE"
 
+## End of Javascript
+fi 
+
 ########### python
 dnl
 dnl check for python
 dnl
+
+if test "x$SCRIPT_LIB" = xpython ; then 
 
 AC_ARG_WITH([python],
   AC_HELP_STRING([--with-python], [Build with python support @<:@default=yes@:>@]),[],[with_python=yes])
@@ -1203,8 +1244,9 @@ if test "x$with_python" = "xyes"; then
     CXXFLAGS="$CXXFLAGS $PYTHON_CXXFLAGS"
 
 fi
-    
-# end of python, it was copied from elsewhere
+
+# end of python flags
+fi
 ############################################
 
 ########### libmagic
@@ -2054,8 +2096,24 @@ echo
 echo "sqlite3               : $SQLITE3_STATUS"
 echo "mysql                 : $MYSQL_STATUS"
 ##echo "postgresql          : $PGSQL_OK"
-echo "libjs                 : $JS_OK"
-echo "libpython             : $with_python"
+echo -n "scripting             : $SCRIPT_OK"
+
+if test "x$SCRIPT_OK" = xyes ; then
+   echo " ($SCRIPT_LIB)"
+
+   if test "x$SCRIPT_LIB"   = xpython    ; then 
+        echo "libpython             : $with_python"
+   elif test "x$SCRIPT_LIB" = xjavascript ; then 
+        echo "libjs                 : $JS_OK"   
+   fi
+else
+   echo ""
+fi
+
+
+
+
+
 echo "libmagic              : $LIBMAGIC_STATUS"
 echo "inotify               : $INOTIFY_STATUS"
 echo "libexif               : $LIBEXIF_STATUS"

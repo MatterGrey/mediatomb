@@ -47,9 +47,9 @@
 #ifdef HAVE_LIBDVDNAV
     class DVDImportScript;
     #include "scripting/dvd_image_import_script.h"
-#endif
+#endif 
 
-#endif
+#endif // HAVE_HS
 #include "layout/layout.h"
 #ifdef HAVE_INOTIFY
     #include "autoscan_inotify.h"

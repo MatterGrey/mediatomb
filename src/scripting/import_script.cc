@@ -34,7 +34,7 @@
 #endif
 
 #ifdef HAVE_JS
-#ifndef HAVE_PYTHON
+
 
 #include "import_script.h"
 #include "config_manager.h"
@@ -127,8 +127,9 @@ ImportScript::~ImportScript()
 
 }
 
-#endif // HAVE_PYTHON        
 #endif // HAVE_JS
+
+
 
 #ifdef HAVE_PYTHON
 

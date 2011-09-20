@@ -56,3 +56,25 @@ Runtime::~Runtime()
 }
 
 #endif // HAVE_JS
+
+
+#ifdef HAVE_PYTHON
+
+#include "runtime.h"
+
+using namespace zmm;
+
+SINGLETON_MUTEX(Runtime, true);
+
+Runtime::Runtime() : Singleton<Runtime>()
+{
+    /* initialize the JS run time, and return result in rt */
+    //    rt = 43;
+
+}
+Runtime::~Runtime()
+{
+    rt = NULL;
+}
+
+#endif // HAVE_PYTHON

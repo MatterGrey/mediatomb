@@ -68,6 +68,8 @@ libmediatomb_a_SOURCES = \
 ../src/layout/fallback_layout.h \
 ../src/layout/js_layout.cc \
 ../src/layout/js_layout.h \
+../src/layout/py_layout.cc \
+../src/layout/py_layout.h \
 ../src/layout/layout.h \
 ../src/logger.cc \
 ../src/logger.h \

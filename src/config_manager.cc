@@ -547,6 +547,9 @@ String ConfigManager::createDefaultConfig(String userhome)
 
     Ref<Element> layout(new Element(_("virtual-layout")));
     layout->setAttribute(_("type"), _(DEFAULT_LAYOUT_TYPE));
+
+#ifdef HAVE_SCRIPTING
+    
 #ifdef HAVE_JS
     layout->appendTextChild(_("import-script"), prefix_dir +
                                                 DIR_SEPARATOR + 
@@ -573,7 +576,38 @@ String ConfigManager::createDefaultConfig(String userhome)
                 DIR_SEPARATOR +
                 _(DEFAULT_PLAYLISTS_SCRIPT));
 
-#endif
+#endif //HAVE_JS
+#ifdef HAVE_PYTHON 
+    layout->appendTextChild(_("import-script"), prefix_dir +
+                                                DIR_SEPARATOR + 
+                                                _(DEFAULT_JS_DIR) +
+                                                DIR_SEPARATOR +
+                                                _(DEFAULT_IMPORT_SCRIPT));
+    layout->appendTextChild(_("dvd-script"), prefix_dir +
+                                                DIR_SEPARATOR + 
+                                                _(DEFAULT_JS_DIR) +
+                                                DIR_SEPARATOR +
+                                                _(DEFAULT_DVD_SCRIPT));
+
+    scripting->appendTextChild(_("common-script"), 
+                prefix_dir + 
+                DIR_SEPARATOR + 
+                _(DEFAULT_JS_DIR) + 
+                DIR_SEPARATOR +
+                _(DEFAULT_COMMON_SCRIPT));
+
+    scripting->appendTextChild(_("playlist-script"),
+                prefix_dir +
+                DIR_SEPARATOR +
+                _(DEFAULT_JS_DIR) +
+                DIR_SEPARATOR +
+                _(DEFAULT_PLAYLISTS_SCRIPT));
+
+    
+#endif //HAVE_PYTHON
+#endif //HAVE_SCRIPTING
+
+    
     scripting->appendElementChild(layout);
 
     String map_file = prefix_dir + DIR_SEPARATOR + CONFIG_MAPPINGS_TEMPLATE;
@@ -1571,19 +1605,41 @@ void ConfigManager::validate(String serverhome)
 
     temp = getOption(_("/import/scripting/virtual-layout/attribute::type"), 
                      _(DEFAULT_LAYOUT_TYPE));
-    if ((temp != "js") && (temp != "builtin") && (temp != "disabled"))
+    if ((temp != "js") && (temp != "py") && (temp != "builtin") && (temp != "disabled"))
         throw _Exception(_("Error in config file: invalid virtual layout "
                            "type specified!"));
     NEW_OPTION(temp);
     SET_OPTION(CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
 
 
+
+#ifdef HAVE_SCRIPTING
+
 #ifndef HAVE_JS
-    if (temp == "js")
+#ifndef HAVE_PYTHON
+    if (temp == "js" || temp == "py" )
+        throw _Exception(_("MediaTomb was compiled without js or py support, "
+                           "however you specified \""+ temp +"\" to be used for the "
+                           "virtual-layout."));
+#endif //HAVE_PYTHON
+#endif //HAVE_JS
+
+#ifndef HAVE_JS
+    if (temp == "js"  )
         throw _Exception(_("MediaTomb was compiled without js support, "
                            "however you specified \"js\" to be used for the "
                            "virtual-layout."));
-#else
+#endif //HAVE_JS
+
+#ifndef HAVE_PYTHON
+    if (temp == "py" )
+        throw _Exception(_("MediaTomb was compiled without jpy support, "
+                           "however you specified \"py\" to be used for the "
+                           "virtual-layout."));
+#endif //HAVE_JS
+
+    
+#ifdef HAVE_JS
     charset = getOption(_("/import/scripting/attribute::script-charset"), 
                         _(DEFAULT_JS_CHARSET));
     if (temp == "js") 
@@ -1644,10 +1700,81 @@ void ConfigManager::validate(String serverhome)
 
     NEW_OPTION(script_path);
     SET_OPTION(CFG_IMPORT_SCRIPTING_DVD_SCRIPT);
-#endif
+#endif // HAVE_LIBDVDNAV
 
-#endif
+#endif // HAVE_JS
 
+    
+#ifdef HAVE_PYTHON
+    charset = getOption(_("/import/scripting/attribute::script-charset"), 
+                        _(DEFAULT_JS_CHARSET));
+    if (temp == "py") 
+    {
+        try
+        {
+            Ref<StringConverter> conv(new StringConverter(charset, 
+                                                _(DEFAULT_INTERNAL_CHARSET)));
+        }
+        catch (Exception e)
+        {
+            throw _Exception(_("Error in config file: unsupported import script charset specified: ") + charset);
+        }
+    }
+
+    NEW_OPTION(charset);
+    SET_OPTION(CFG_IMPORT_SCRIPTING_CHARSET);
+
+    String script_path = getOption(
+                           _("/import/scripting/virtual-layout/import-script"), 
+                           prefix_dir +
+                             DIR_SEPARATOR + 
+                           _(DEFAULT_JS_DIR) +
+                             DIR_SEPARATOR +
+                           _(DEFAULT_IMPORT_SCRIPT));
+    if (temp == "py")
+    {
+        if (!string_ok(script_path))
+            throw _Exception(_("Error in config file: you specified \"py\" to "
+                               "be used for virtual layout, but script "
+                               "location is invalid."));
+
+        prepare_path(_("/import/scripting/virtual-layout/import-script"));
+        script_path = getOption(
+                        _("/import/scripting/virtual-layout/import-script"));
+    }
+
+    NEW_OPTION(script_path);
+    SET_OPTION(CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT);
+#ifdef HAVE_LIBDVDNAV
+    // add dvd script and make sure scripts can be enabled and disabled
+    script_path = getOption(_("/import/scripting/virtual-layout/dvd-script"),
+                            prefix_dir + DIR_SEPARATOR + _(DEFAULT_JS_DIR) +
+                            DIR_SEPARATOR + _(DEFAULT_DVD_SCRIPT));
+
+    if (temp == "py")
+    {
+        if (!string_ok(script_path))
+            throw _Exception(_("Error in config file: you specified \"py\" to "
+                               "be used for virtual layout, but dvd script "
+                               "location is invalid."));
+
+        prepare_path(_("/import/scripting/virtual-layout/dvd-script"));
+        script_path = getOption(
+                        _("/import/scripting/virtual-layout/dvd-script"));
+ 
+    }
+
+    NEW_OPTION(script_path);
+    SET_OPTION(CFG_IMPORT_SCRIPTING_DVD_SCRIPT);
+#endif // HAVE_LIBDVDNAV
+
+#endif // HAVE_PYTHON
+
+
+
+#endif // HAVE_SCRIPTING
+
+    
     // 0 means, that the SDK will any free port itself
     temp_int = getIntOption(_("/server/port"), 0);
     NEW_INT_OPTION(temp_int);

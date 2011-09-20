@@ -32,6 +32,8 @@
 #ifndef __SCRIPTING_IMPORT_SCRIPT_H__
 #define __SCRIPTING_IMPORT_SCRIPT_H__
 
+#ifdef HAVE_JS       
+
 #include "common.h"
 #include "script.h"
 #include "cds_objects.h"
@@ -46,9 +48,32 @@ public:
     virtual script_class_t whoami() { return S_IMPORT; }
 private:
 
-#ifndef HAVE_PYTHON        
+
     JSObject *root;
-#endif //HAVE_PYTHON        
+
+};
+#endif //HAVE_JS
+
+#ifdef HAVE_PYTHON
+
+#include "common.h"
+#include "script.h"
+#include "cds_objects.h"
+#include "layout/layout.h"
+
+class ImportScript : public Script
+{
+public:
+    ImportScript(zmm::Ref<Runtime> runtime);
+    ~ImportScript();
+    void processCdsObject(zmm::Ref<CdsObject> obj, zmm::String rootpath);
+    virtual script_class_t whoami() { return S_IMPORT; }
+private:
+
+
+    // JSObject *root;
+
 };
 
+#endif //HAVE_PYTHON
 #endif // __SCRIPTING_IMPORT_SCRIPT_H__

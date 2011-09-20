@@ -33,6 +33,7 @@
 #define __SCRIPTING_RUNTIME_H__
 
 #define XP_UNIX 1
+#ifdef HAVE_JS
 
 #include <jsapi.h>
 #include <pthread.h>
@@ -53,5 +54,32 @@ public:
     /// \brief Returns the runtime for script execution.
     JSRuntime *getRT() { return rt; }
 };
+
+#endif // HAVA_JS
+#ifdef HAVE_PYTHON
+
+
+#include <pthread.h>
+#include "common.h"
+#include "sync.h"
+#include "singleton.h"
+
+/// \brief Runtime class definition.
+class Runtime : public Singleton<Runtime>
+{
+protected:
+        //JSRuntime *rt;
+        int *rt;
+public:
+    Runtime();
+    virtual ~Runtime();
+    
+    /// \brief Returns the runtime for script execution.
+    //JSRuntime *getRT() { return rt; }
+    int *getRT() { return rt; }
+};
+
+
+#endif
 
 #endif // __SCRIPTING_RUNTIME_H__

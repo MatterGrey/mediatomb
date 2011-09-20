@@ -34,7 +34,6 @@
 #endif
 
 #ifdef HAVE_JS
-#ifndef HAVE_PYTHON
 
 #include "script.h"
 #include "tools.h"
@@ -1112,7 +1111,7 @@ Ref<CdsObject> Script::getProcessedObject()
     return processed;
 }
 
-#endif // HAVE_PYTHON
+
 #endif // HAVE_JS
 
 /* *************************************************************************************** */
@@ -1203,7 +1202,7 @@ MediaTomb_dealloc(mediatomb_MediaTombObject* self)
 static PyObject *
 MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-        log_py("hello new world");
+        log_py("hello new world\n");
         mediatomb_MediaTombObject *self;
         self = (mediatomb_MediaTombObject *)type->tp_alloc(type, 0);
 
@@ -1329,8 +1328,8 @@ Script::Script(Ref<Runtime> runtime) : Object()
         log_py("Pyton Engine, ver%s\n" , Py_GetVersion() );
 
                 
-        this->runtime = runtime;
-        rt = runtime->getRT();
+        //     this->runtime = runtime;
+        // rt = runtime->getRT();
 
         /* start up my python runtime */ 
         Py_Initialize();

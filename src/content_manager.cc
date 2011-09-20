@@ -54,7 +54,13 @@
 
 #ifdef HAVE_JS
     #include "layout/js_layout.h"
-#endif
+#endif //HAVE_JS
+
+#ifdef HAVE_PYTHON
+    #include "layout/py_layout.h"
+#endif //HAVE_PYTHON
+
+
 
 #ifdef EXTERNAL_TRANSCODING
     #include "process.h"
@@ -219,8 +225,8 @@ ContentManager::ContentManager() : TimerSubscriberSingleton<ContentManager>()
 #endif // HAVE_MAGIC
 
     String layout_type = 
-                       cm->getOption(CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
-    if ((layout_type == "builtin") || (layout_type == "js"))
+            cm->getOption(CFG_IMPORT_SCRIPTING_VIRTUAL_LAYOUT_TYPE);
+    if ((layout_type == "builtin") || (layout_type == "js") || (layout_type == "py"))
         layout_enabled = true;
 
 #ifdef ONLINE_SERVICES
@@ -620,6 +626,7 @@ void ContentManager::addVirtualItem(Ref<CdsObject> obj, bool allow_fifo)
 
 int ContentManager::_addFile(String path, String rootpath, bool recursive, bool hidden, Ref<CMTask> task)
 {
+        log_info("I's adding file : %s",  path.c_str());
     if (hidden == false)
     {
         String filename = get_filename(path);
@@ -635,10 +642,8 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
         initLayout();
 
 #ifdef HAVE_JS
-#ifndef HAVE_PYTHON
     initJS();
-#endif
-#endif
+#endif // HAVE_JS
     
     Ref<Storage> storage = Storage::getInstance();
     
@@ -666,24 +671,25 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
                     String mimetype = RefCast(obj, CdsItem)->getMimeType();
                     String content_type = mimetype_contenttype_map->get(mimetype);
 #ifdef HAVE_JS
-#ifndef HAVE_PYTHON
+
                     
                     if ((playlist_parser_script != nil) &&
                         (content_type == CONTENT_TYPE_PLAYLIST))
                             playlist_parser_script->processPlaylistObject(obj, task);
-#ifdef HAVE_LIBDVDNAV
+# ifdef HAVE_LIBDVDNAV
                     if ((dvd_import_script != nil) &&
                         (content_type == CONTENT_TYPE_DVD))
                            dvd_import_script->processDVDObject(obj);
-#else
+# else
                     if (content_type == CONTENT_TYPE_DVD)
                         log_warning("DVD Image %s will not be parsed: MediaTomb was compiled without libdvdnav  support!\n", obj->getLocation().c_str());
-#endif // DVD
+# endif // DVD
 #else
+# ifndef HAVE_PYTHON// PYTHON                      
                     if (content_type == CONTENT_TYPE_PLAYLIST)
                             log_warning("Playlist %s will not be parsed: MediaTomb was compiled without JS support!\n", obj->getLocation().c_str());
-#endif // PYTHON
-#endif // JS
+# endif // PYTHON
+#endif // HAVE_JS
                 }
                 catch (Exception e)
                 {
@@ -1053,7 +1059,7 @@ void ContentManager::addRecursive(String path, bool hidden, Ref<CMTask> task)
             }
             if (obj != nil)
             {
-//#ifdef HAVE_JS
+
                 if (IS_CDS_ITEM(obj->getObjectType()))
                 {
                     if (layout != nil)
@@ -1064,9 +1070,7 @@ void ContentManager::addRecursive(String path, bool hidden, Ref<CMTask> task)
                             if (task != nil)
                                 rootpath = RefCast(task, CMAddFileTask)->getRootPath();
                             layout->processCdsObject(obj, rootpath);
-#ifdef HAVE_JS
-#ifndef HAVE_PYTHON
-                            
+#ifdef HAVE_JS                            
                             Ref<Dictionary> mappings = ConfigManager::getInstance()->getDictionaryOption(CFG_IMPORT_MAPPINGS_MIMETYPE_TO_CONTENTTYPE_LIST);
                             String mimetype = RefCast(obj, CdsItem)->getMimeType();
                             String content_type = mappings->get(mimetype);
@@ -1079,8 +1083,6 @@ void ContentManager::addRecursive(String path, bool hidden, Ref<CMTask> task)
                                 (content_type == CONTENT_TYPE_DVD))
                                     dvd_import_script->processDVDObject(obj);
 #endif // DVD
-
-#endif // PYTHON
 #endif // JS
                         }
                         catch (Exception e)
@@ -1481,7 +1483,14 @@ void ContentManager::initLayout()
                     layout = Ref<Layout>((Layout *)new JSLayout());
 #else
                     log_error("Cannot init layout: MediaTomb compiled without js support but js script was requested.");
-#endif
+#endif //HAVE_JS
+                }else if (layout_type == "py")
+                {
+#ifdef HAVE_PYTHON
+                        layout = Ref<Layout>((Layout *)new PYLayout());
+#else
+                    log_error("Cannot init layout: MediaTomb compiled without py support but py script was requested.");
+#endif //HAVE_PYTHON              
                 }
                 else if (layout_type == "builtin")
                 {
@@ -1497,7 +1506,7 @@ void ContentManager::initLayout()
 }
 
 #ifdef HAVE_JS
-#ifndef HAVE_PYTHON
+
 
 void ContentManager::initJS()
 {
@@ -1520,7 +1529,6 @@ void ContentManager::destroyJS()
 #endif
 }
 
-#endif // HAVE_PYTHON
 #endif // HAVE_JS
 
 void ContentManager::destroyLayout()
