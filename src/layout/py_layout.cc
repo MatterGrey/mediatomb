@@ -42,6 +42,7 @@ using namespace zmm;
 
 PYLayout::PYLayout() : Layout()
 {
+        log_info("PYLayout::PyLayout\n");  
     import_script = Ref<ImportScript>(new ImportScript(Runtime::getInstance()));
 }
 
@@ -54,6 +55,7 @@ void PYLayout::processCdsObject(Ref<CdsObject> obj, String rootpath)
     if (import_script == nil)
         return;
 
+    log_info("PYLayout::processCdsObject(%s)\n",rootpath.c_str());
     import_script->processCdsObject(obj, rootpath);
 }
 

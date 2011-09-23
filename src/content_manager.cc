@@ -626,7 +626,7 @@ void ContentManager::addVirtualItem(Ref<CdsObject> obj, bool allow_fifo)
 
 int ContentManager::_addFile(String path, String rootpath, bool recursive, bool hidden, Ref<CMTask> task)
 {
-        log_info("I's adding file : %s",  path.c_str());
+    log_info("1 ContentManager::_addFile(%s)\n",  path.c_str());
     if (hidden == false)
     {
         String filename = get_filename(path);
@@ -638,8 +638,12 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
     if (ConfigManager::getInstance()->getConfigFilename() == path)
         return INVALID_OBJECT_ID;
 
+    log_info("2 ContentManager::_addFile(%s)\n",  path.c_str());
+
     if (layout_enabled)
         initLayout();
+
+    log_info("3 ContentManager::_addFile(%s)\n",  path.c_str());
 
 #ifdef HAVE_JS
     initJS();
@@ -658,7 +662,11 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
             return INVALID_OBJECT_ID;
         if (IS_CDS_ITEM(obj->getObjectType()))
         {
+            log_info("4 ContentManager::_addFile(%s)\n",  path.c_str());
+
             addObject(obj);
+            log_info("5 ContentManager::_addFile(%s)\n",  path.c_str());
+
             if (layout != nil)
             {
                 try
@@ -671,8 +679,6 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
                     String mimetype = RefCast(obj, CdsItem)->getMimeType();
                     String content_type = mimetype_contenttype_map->get(mimetype);
 #ifdef HAVE_JS
-
-                    
                     if ((playlist_parser_script != nil) &&
                         (content_type == CONTENT_TYPE_PLAYLIST))
                             playlist_parser_script->processPlaylistObject(obj, task);
