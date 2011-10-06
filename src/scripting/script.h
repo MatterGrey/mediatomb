@@ -138,6 +138,9 @@ private:
 #include "runtime.h"
 #include "cds_objects.h"
 #include "string_converter.h"
+#include "mediatomb_py.h"
+
+
 
 // perform garbage collection after script has been run for x times
 #define JS_CALL_GC_AFTER_NUM    (1000)
@@ -173,8 +176,9 @@ public:
     Script(zmm::Ref<Runtime> runtime);
     virtual ~Script();
 
-
-    
+    void load(zmm::String scriptPath);
+    void setPyObj(zmm::Ref<CdsObject> obj);
+    /*
     zmm::String getProperty(PyObject *obj, zmm::String name);
     int getBoolProperty(PyObject *obj, zmm::String name);
     int getIntProperty(PyObject *obj, zmm::String name, int def);
@@ -193,7 +197,7 @@ public:
     
     //void defineFunction(zmm::String name, JSNative function, int numParams);
     //void defineFunctions(JSFunctionSpec *functions);
-    void load(zmm::String scriptPath);
+    
     void load(zmm::String scriptText, zmm::String scriptPath);
     
     zmm::Ref<CdsObject> pyObject2cdsObject(PyObject *py, zmm::Ref<CdsObject> pcd);
@@ -204,11 +208,13 @@ public:
     zmm::Ref<CdsObject> getProcessedObject(); 
 
     zmm::String convertToCharset(zmm::String str, charset_convert_t chr);
-    
+    */
 protected:
     void execute();
-    int gc_counter;
-
+    // int gc_counter;
+    
+    zmm::String importScript;
+    mediatomb_MediaTombObject *mt_py_obj;
     // object that is currently being processed by the script (set in import
     // script)
     zmm::Ref<CdsObject> processed;

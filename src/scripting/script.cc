@@ -1124,33 +1124,28 @@ Ref<CdsObject> Script::getProcessedObject()
 #include "script.h"
 #include "tools.h"
 #include "metadata_handler.h"
+#include "mediatomb_py.h"
 //#include "js_functions.h"
 //#include "config_manager.h"
-
-
-/*****************************************/
-typedef struct 
-{
-        PyObject_HEAD
-        /* Type-specific fields go here. */
-        PyObject *path;
-        PyObject *location;
-        
-} mediatomb_MediaTombObject;
-
-
-// --------------
-
-
 
 static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         log_py("init me silly\n");
 
+        zmm::Ref<Runtime> runtime = Runtime::getInstance();
+        zmm::Ref<CdsObject> obj = runtime->getCdsObj();
+
+        zmm::String val;
+
+        
         Py_INCREF(self->path);
         self->path =  PyString_FromString("");;
-        
-        Py_INCREF(self->location);
-        self->location =  PyString_FromString("");;
+
+        val = obj->getLocation();
+        if (val != nil){                
+                Py_INCREF(self->location);
+                self->location =  PyString_FromString(val.c_str());
+                log_py("setting location :  %s \n",val.c_str());                
+        }
         log_py("init that \n");
         return 0;
 }
@@ -1188,8 +1183,6 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
         
 }
 
-
-
 static void
 MediaTomb_dealloc(mediatomb_MediaTombObject* self)
 {
@@ -1203,12 +1196,40 @@ static PyObject *
 MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
         log_py("hello new world\n");
+
         mediatomb_MediaTombObject *self;
         self = (mediatomb_MediaTombObject *)type->tp_alloc(type, 0);
-
+        
         if (self != NULL) {
-                self->path = PyString_FromString("");
-                if (self->path == NULL)
+
+                self->objectType = Py_None;
+                if (self->objectType == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }                
+                self->id = Py_None;
+                if (self->id == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                self->parentID = Py_None;
+                if (self->parentID == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                
+                self->title = PyString_FromString("");
+                if (self->title == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+
+                self->upnpclass = PyString_FromString("");
+                if (self->upnpclass == NULL)
                 {
                         Py_DECREF(self);
                         return NULL;
@@ -1219,18 +1240,42 @@ MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                         Py_DECREF(self);
                         return NULL;
                 }
-                //self->number = 0;
+                
+                self->path = PyString_FromString("");
+                if (self->path == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
         }
+  
+ 
         return (PyObject *)self;
 }
 
 static PyMemberDef MediaTomb_Members[] = {
-        {(char *)"path", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, path), 0,
-         (char *)"path"
-        }
-        ,
+        {(char *)"objectType", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, objectType), 0,
+         (char *)"objectType"
+        },
+        
+        {(char *)"id", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, id), 0,
+         (char *)"id"
+        },
+        {(char *)"parentID", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, parentID), 0,
+         (char *)"parentID"
+        },
+        {(char *)"title", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, title), 0,
+         (char *)"title"
+        },
+        {(char *)"upnpclass", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, upnpclass), 0,
+         (char *)"upnpclass"
+        },
         {(char *)"location", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, location), 0,
          (char *)"location"
+        },        
+
+        {(char *)"path", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, path), 0,
+         (char *)"path"
         }
         ,
         {NULL
@@ -1311,7 +1356,6 @@ init_mediatomb(void)
 
         Py_INCREF(&mediatomb_MediaTombType);
         PyModule_AddObject(m, "MediaTomb", (PyObject *)&mediatomb_MediaTombType);
-
 }
 
 
@@ -1328,9 +1372,7 @@ Script::Script(Ref<Runtime> runtime) : Object()
         log_py("Pyton Engine, ver%s\n" , Py_GetVersion() );
 
                 
-        //     this->runtime = runtime;
-        // rt = runtime->getRT();
-
+        this->runtime = runtime;        
         /* start up my python runtime */ 
         Py_Initialize();
         init_mediatomb();
@@ -1353,22 +1395,70 @@ void Script::load(zmm::String scriptPath)
 
     script = _load((scriptPath));
         */
-
         
         log_py("Loading %s\n" ,scriptPath.c_str() );
+        importScript = scriptPath ;
+}
 
-        PyObject* PyFileObject = PyFile_FromString((char *)scriptPath.c_str(), (char *)"r");
-        PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)scriptPath.c_str());
 
+/* do magic to pyobject */
+void Script::setPyObj(Ref<CdsObject> obj)
+{
+
+        runtime->setCdsObj(obj);
+        
+        String val;
+        int i;
+        
+        // int objectType = obj->getObjectType();
+                
+        // CdsObject
+        //setIntProperty(js, _("objectType"), objectType);
+        
+        i = obj->getID();
+        if (i != INVALID_OBJECT_ID){
+                //setIntProperty(js, _("id"), i);
+                log_py("id :  %d \n",i);
+        }
+        
+        i = obj->getParentID();                
+        if (i != INVALID_OBJECT_ID){
+                //setIntProperty(js, _("parentID"), i);
+                log_py("parent :  %d \n",i);
+        }
+        val = obj->getTitle();
+        if (val != nil){
+                //setProperty(js, _("title"), val);
+                log_py("title :  %s \n",val.c_str());
+        }
+        
+        val = obj->getClass();
+        if (val != nil){
+                //setProperty(js, _("upnpclass"), val);
+                log_py("upnpclass :  %s \n",val.c_str());
+        }
+        
+        val = obj->getLocation();
+        if (val != nil){
+                //setProperty(js, _("location"), val);
+                log_py("location :  %s \n",val.c_str());
+        }
+        
+        
+
+        
 }
 
 void Script::execute()
 {
 
+
         log_py("EXECUTING\n");
+        PyObject* PyFileObject = PyFile_FromString((char *)importScript.c_str(), (char *)"r");
+        PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)importScript.c_str());
         
 }
-               
+/*             
 Ref<CdsObject> Script::pyObject2cdsObject(PyObject *py, zmm::Ref<CdsObject> pcd)
 {
 }
@@ -1382,7 +1472,7 @@ void Script::setObjectProperty(PyObject *parent, String name, PyObject *obj)
 PyObject *Script::getObjectProperty(PyObject *obj, String name)
 {
 }
-
+*/
 
 
 #endif // HAVE_PYTHON

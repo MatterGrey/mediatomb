@@ -161,12 +161,16 @@ void ImportScript::processCdsObject(Ref<CdsObject> obj, String rootpath)
     {
         
         log_info("ImportScript::processCdsObject(%s)\n", rootpath.c_str());
+        setPyObj(obj);
+
+
 /*        JSObject *orig = JS_NewObject(cx, NULL, NULL, glob);
         setObjectProperty(glob, _("orig"), orig);
         cdsObject2jsObject(obj, orig);
         setProperty(glob, _("object_root_path"), rootpath);
-        execute();
 */
+        execute();
+
     }
     catch (Exception ex)
     {

@@ -63,20 +63,26 @@ public:
 #include "common.h"
 #include "sync.h"
 #include "singleton.h"
+#include "cds_objects.h"
+
 
 /// \brief Runtime class definition.
 class Runtime : public Singleton<Runtime>
 {
 protected:
-        //JSRuntime *rt;
-        int *rt;
+        // JSRuntime *rt;
+        // int *rt;
+        zmm::Ref<CdsObject> obj;
 public:
     Runtime();
     virtual ~Runtime();
     
     /// \brief Returns the runtime for script execution.
     //JSRuntime *getRT() { return rt; }
-    int *getRT() { return rt; }
+    zmm::Ref<CdsObject> getCdsObj() { return obj; }
+    void setCdsObj(  zmm::Ref<CdsObject> cdsObj ) { obj = cdsObj; }
+
+    
 };
 
 

@@ -74,7 +74,7 @@ Runtime::Runtime() : Singleton<Runtime>()
 }
 Runtime::~Runtime()
 {
-    rt = NULL;
+        obj = NULL;
 }
 
 #endif // HAVE_PYTHON
