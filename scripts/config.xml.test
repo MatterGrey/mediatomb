@@ -52,13 +52,8 @@
   </server>
   <import hidden-files="no">
     <scripting script-charset="UTF-8">
-      <!-- <common-script>/usr/share/mediatomb/js/common.js</common-script> -->
-      <!-- <playlist-script>/usr/share/mediatomb/js/playlists.js</playlist-script> -->
-      <!-- <virtual-layout type="builtin"> -->
-      <virtual-layout type="py">
-        <!-- <import-script>/usr/share/mediatomb/js/import.js</import-script>-->
-        <import-script>/opt/mediatomb/etc/mediatomb/py/import.py</import-script>
-        <import-script>/home/alexs/Devel/mediatomb/mediatomb/scripts/py/import.py</import-script>
+      <virtual-layout type="py"><!-- <import-script>/usr/share/mediatomb/js/import.js</import-script>-->
+        <import-script>/home/alexs/Devel/mediatomb/scripts/py/import.py</import-script>
         <!-- <dvd-script>/opt/mediatomb/usr/share/mediatomb/js/import-dvd.js</dvd-script> -->
       </virtual-layout>
     </scripting>

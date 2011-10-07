@@ -951,6 +951,8 @@ AC_ARG_ENABLE(scripting,
         [
               SCRIPT_OK=yes
               SCRIPT_LIB=python
+              AC_DEFINE([HAVE_SCRIPTING], [1], [scripting enabled presence])
+
         ]
           
     )

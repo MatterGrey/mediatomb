@@ -1,5 +1,7 @@
 
 from time import time, ctime
+print "Ya Dawg, I heard you like bases?"
+
 import mediatomb
 mediatomb.log( "I'm running PYTHON! (%s)" % ctime(time()))
 
@@ -8,17 +10,19 @@ print dir(mediatomb)
 media = mediatomb.MediaTomb()
 print dir(media)
 
-print media
+#print media
 
 # mediatomb.log( "path:%s , location:%s" % (media.path(), media.location()) )
 
 mediatomb.log( "foo %s " % media.path )
-media.path = "kittens!"
+#media.path = "kittens!"
 
-mediatomb.log( "foo %s " % media.path )
+#mediatomb.log( "foo %s " % media.path )
 # mediatomb.log( "path:%s , location:%s" % (media.path, media.location) )
 
 
 mediatomb.log("bye")
 # get the current object
 # switch on mime
+
+

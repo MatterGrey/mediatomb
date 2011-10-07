@@ -141,6 +141,8 @@ using namespace zmm;
 
 ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
 {
+
+
     String scriptPath = ConfigManager::getInstance()->getOption(CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT);
     
     log_info("ImportScript::ImportScript(%s)\n", scriptPath.c_str());

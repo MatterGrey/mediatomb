@@ -1638,7 +1638,7 @@ void ConfigManager::validate(String serverhome)
                            "virtual-layout."));
 #endif //HAVE_JS
 
-    
+   
 #ifdef HAVE_JS
     charset = getOption(_("/import/scripting/attribute::script-charset"), 
                         _(DEFAULT_JS_CHARSET));
