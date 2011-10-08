@@ -1137,20 +1137,27 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         zmm::String val;
         
         Py_INCREF(self->path);
-        self->path =  PyString_FromString("test");;
+        self->path =  PyString_FromString("");;
 		
 		val = obj->getTitle();
 		if (val !=nil){
 				Py_INCREF(self->title);
 				self->title = PyString_FromString(val.c_str());
-				log_py("Setting Title %s \n",val.c_str());
+				log_py("Setting Title : %s \n",val.c_str());
 		}
         
         val = obj->getLocation();
-        if (val != nil){                
+        if (val !=nil){                
                 Py_INCREF(self->location);
                 self->location =  PyString_FromString(val.c_str());
                 log_py("setting location :  %s \n",val.c_str());                
+        }
+        
+        val = obj->getClass();
+        if (val !=nil){
+				Py_INCREF(self->upnpclass);
+				self->upnpclass = PyString_FromString(val.c_str());
+				log_py("Setting Class : %s \n",val.c_str());
         }
         log_py("init that \n");
         return 0;
@@ -1158,7 +1165,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 
 
 static PyObject* mediatomb_getObj(PyObject *self, PyObject *args) {
-        return Py_BuildValue("s", "42");
+        return Py_BuildValue("s", "");
 }
 // PY Logger 
 static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
@@ -1449,9 +1456,7 @@ void Script::setPyObj(Ref<CdsObject> obj)
                 //setProperty(js, _("location"), val);
                 log_py("location :  %s \n",val.c_str());
         }
-        
-        
-
+               
         
 }
 

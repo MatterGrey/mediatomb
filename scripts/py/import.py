@@ -14,7 +14,8 @@ def CheckObjectInput():
 	mediatomb.log ("title %s" % media.title)
 	mediatomb.log ("Path %s" % media.path)
 	mediatomb.log ("Location %s" % media.location)
-	mediatomb.log ("Upnp %s" % media.upnpclass)
-	#mediatomb.log( mediatomb.getObj() )
+	mediatomb.log ("Upnpclass %s" % media.upnpclass)
+	mediatomb.log( mediatomb.getObj() )
 	
+
 CheckObjectInput();
