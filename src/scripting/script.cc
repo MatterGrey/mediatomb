@@ -1175,13 +1175,13 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 		i = obj->getObjectType();
 		Py_INCREF(self->objectType);
 		self->objectType = PyInt_FromLong(i);
-		log_py("setting objectType :  %l \n",i);
+		log_py("setting %12s: %d \n","objectType",i);
         
         i = obj->getID();
         if (i != INVALID_OBJECT_ID){
 				Py_INCREF(self->id);
 				self->id = PyInt_FromLong(i);
-				log_py("setting id :  %l \n",i);
+				log_py("setting %12s: %d \n","id",i);
         }
        
 
@@ -1189,27 +1189,27 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         if (i != INVALID_OBJECT_ID){
 				Py_INCREF(self->parentID);
 				self->parentID = PyInt_FromLong(i);
-                log_py("setting parentID :  %d \n",i);
+				log_py("setting %12s: %d \n","parentID",i);
         }
         val = obj->getTitle();
         if (val != nil){
                 Py_INCREF(self->title);
                 self->title =  PyString_FromString(val.c_str());
-                log_py("setting title :  %s \n",val.c_str());
+                log_py("setting %12s: %s \n","title",val.c_str());
         }
         
         val = obj->getClass();
         if (val != nil){
                 Py_INCREF(self->upnpclass);
                 self->upnpclass =  PyString_FromString(val.c_str());
-                log_py("upnpclass :  %s \n",val.c_str());
+                log_py("setting %12s: %s \n","upnpclass",val.c_str());
         }
 
         val = obj->getLocation();
         if (val != nil){                
                 Py_INCREF(self->location);
                 self->location =  PyString_FromString(val.c_str());
-                log_py("setting location :  %s \n",val.c_str());                
+                log_py("setting %12s: %s \n","location",val.c_str());
         }
 
 
