@@ -5,24 +5,16 @@ print "Ya Dawg, I heard you like bases?"
 import mediatomb
 mediatomb.log( "I'm running PYTHON! (%s)" % ctime(time()))
 
-mediatomb.log( mediatomb.getObj() )
-print dir(mediatomb)
-media = mediatomb.MediaTomb()
-print dir(media)
-
-#print media
-
-# mediatomb.log( "path:%s , location:%s" % (media.path(), media.location()) )
-
-mediatomb.log( "foo %s " % media.path )
-#media.path = "kittens!"
-
-#mediatomb.log( "foo %s " % media.path )
-# mediatomb.log( "path:%s , location:%s" % (media.path, media.location) )
 
 
-mediatomb.log("bye")
-# get the current object
-# switch on mime
-
-
+def CheckObjectInput():
+	mediatomb.log( "Checking Object Input")
+	media = mediatomb.MediaTomb()
+	print dir(media)
+	mediatomb.log ("title %s" % media.title)
+	mediatomb.log ("Path %s" % media.path)
+	mediatomb.log ("Location %s" % media.location)
+	mediatomb.log ("Upnp %s" % media.upnpclass)
+	#mediatomb.log( mediatomb.getObj() )
+	
+CheckObjectInput();

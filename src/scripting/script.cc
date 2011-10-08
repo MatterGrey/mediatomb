@@ -1139,7 +1139,19 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         
         Py_INCREF(self->path);
         self->path =  PyString_FromString("");;
-
+		
+		val = obj->getTitle();
+		if (val !=nil){
+				Py_INCREF(self->title);
+				self->title = PyString_FromString(val.c_str());
+				log_py("Setting Title %s \n",val.c_str());
+		}
+        val = obj->getPath();
+        if (val !=nul){
+				Py_INCREG(self->path);
+				self->path = PyString_FromString(val.c_str());
+				log_py("Setting Path %s \n",val.c_str());
+		}
         val = obj->getLocation();
         if (val != nil){                
                 Py_INCREF(self->location);
