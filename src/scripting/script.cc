@@ -1126,6 +1126,9 @@ Ref<CdsObject> Script::getProcessedObject()
 #include "metadata_handler.h"
 #include "mediatomb_py.h"
 //#include "config_manager.h"
+#ifdef ONLINE_SERVICES
+    #include "online_service.h"
+#endif
 
 
 // Dummy function that returns 42.
@@ -1161,7 +1164,6 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
         
 }
 
-
 static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         log_py("init me silly\n");
 
@@ -1170,18 +1172,19 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 
         zmm::String val;
         int i ;
+        int objectType;
 
 		// ObjectType always exists
-		i = obj->getObjectType();
+		objectType = i = obj->getObjectType();
 		Py_INCREF(self->objectType);
 		self->objectType = PyInt_FromLong(i);
-		log_py("setting %12s: %d \n","objectType",i);
+		log_py("setting %13s: %d \n","objectType",i);
         
         i = obj->getID();
         if (i != INVALID_OBJECT_ID){
 				Py_INCREF(self->id);
 				self->id = PyInt_FromLong(i);
-				log_py("setting %12s: %d \n","id",i);
+				log_py("setting %13s: %d \n","id",i);
         }
        
 
@@ -1189,31 +1192,306 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         if (i != INVALID_OBJECT_ID){
 				Py_INCREF(self->parentID);
 				self->parentID = PyInt_FromLong(i);
-				log_py("setting %12s: %d \n","parentID",i);
+				log_py("setting %13s: %d \n","parentID",i);
         }
         val = obj->getTitle();
         if (val != nil){
                 Py_INCREF(self->title);
                 self->title =  PyString_FromString(val.c_str());
-                log_py("setting %12s: %s \n","title",val.c_str());
+                log_py("setting %13s: %s \n","title",val.c_str());
         }
         
         val = obj->getClass();
         if (val != nil){
                 Py_INCREF(self->upnpclass);
                 self->upnpclass =  PyString_FromString(val.c_str());
-                log_py("setting %12s: %s \n","upnpclass",val.c_str());
+                log_py("setting %13s: %s \n","upnpclass",val.c_str());
         }
 
         val = obj->getLocation();
         if (val != nil){                
                 Py_INCREF(self->location);
                 self->location =  PyString_FromString(val.c_str());
-                log_py("setting %12s: %s \n","location",val.c_str());
+                log_py("setting %13s: %s \n","location",val.c_str());
         }
 
-
+		//
 		
+		// TODO: boolean type
+		i = obj->isRestricted();
+		Py_INCREF(self->restricted);
+		self->restricted = PyBool_FromLong(i);
+		log_py("setting %13s: %d \n","restricted",i);
+
+
+        i = obj->getFlag(OBJECT_FLAG_OGG_THEORA);
+		Py_INCREF(self->theora);
+		self->theora = PyBool_FromLong(i);
+		log_py("setting %13s: %d \n","theora",i);
+
+
+
+		i = 0 ; // if online service is not defined or if its not an online service it needs to be zero
+#ifdef ONLINE_SERVICES
+		if (obj->getFlag(OBJECT_FLAG_ONLINE_SERVICE)){
+				service_type_t service = (service_type_t)(obj->getAuxData(_(ONLINE_SERVICE_AUX_ID)).toInt());
+				i = (int)service;
+		}
+#endif			
+	Py_INCREF(self->onlineservice);
+	self->onlineservice = PyInt_FromLong(i);
+	log_py("setting %13s: %d \n","onlineservice",i);
+
+
+    // setting metadata
+    {
+        using namespace zmm;
+        // self->meta
+        /*
+        self->meta = PyDict_New();
+        int r  =0 ;
+        r = PyDict_SetItemString(self->meta,  "kitten", PyString_FromString("miew") );
+        log_py("setting %13s: %s -> %s (%d) \n","meta","kitten","miew",r );
+        */
+        
+        Ref<Dictionary> meta = obj->getMetadata();
+        Ref<Array<DictionaryElement> > elements = meta->getElements();
+        int len = elements->size();
+        for (int i = 0; i < len; i++)
+        {
+            Ref<DictionaryElement> el = elements->get(i);
+            //setProperty(meta_js, el->getKey(), PyString_FromString(el->getValue()) );
+            PyDict_SetItemString(self->meta,  el->getKey().c_str(), PyString_FromString(el->getValue().c_str()));
+            log_py("setting %13s: %s -> %s \n","meta[]",el->getKey().c_str(),el->getValue().c_str() );
+            
+        }
+
+        //if (RefCast(obj, CdsItem)->getTrackNumber() > 0)
+        //    setProperty(meta_js, MetadataHandler::getMetaFieldName(M_TRACKNUMBER), String::from(RefCast(obj, CdsItem)->getTrackNumber())); 
+    }
+    
+    // setting auxdata
+    {
+        using namespace zmm;
+        //JSObject *aux_js = JS_NewObject(cx, NULL, NULL, js);
+        //setObjectProperty(js, _("aux"), aux_js);
+        Ref<Dictionary> aux = obj->getAuxData();
+        // done in new()
+
+/*
+#ifdef HAVE_LIBDVDNAV
+        if (obj->getFlag(OBJECT_FLAG_DVD_IMAGE))
+        {
+            JSObject *aux_dvd = JS_NewObject(cx, NULL, NULL, js);
+            setObjectProperty(aux_js, _("DVD"), aux_dvd);
+
+            int title_count = obj->getAuxData(
+                                DVDHandler::renderKey(DVD_TitleCount)).toInt();
+
+            JSObject *titles = JS_NewArrayObject(cx, 0, NULL);
+            setObjectProperty(aux_dvd, _("titles"), titles);
+
+            for (int t = 0; t < title_count; t++)
+            {
+                JSObject *title = JS_NewObject(cx, NULL, NULL, js);
+                jsval val = OBJECT_TO_JSVAL(title);
+                JS_SetElement(cx, titles, t, &val);
+
+                setProperty(title, _("duration"), 
+                        obj->getAuxData(DVDHandler::renderKey(DVD_TitleDuration,
+                                        t)));
+
+                JSObject *audio_tracks = JS_NewArrayObject(cx, 0, NULL);
+                setObjectProperty(title, _("audio_tracks"), audio_tracks);
+
+                int audio_track_count = obj->getAuxData(
+                        DVDHandler::renderKey(DVD_AudioTrackCount, t)).toInt();
+
+                for (int a = 0; a < audio_track_count; a++)
+                {
+                    JSObject *track = JS_NewObject(cx, NULL, NULL, js);
+                    jsval val = OBJECT_TO_JSVAL(track);
+                    JS_SetElement(cx, audio_tracks, a, &val);
+
+                    setProperty(track, _("language"), obj->getAuxData(
+                                DVDHandler::renderKey(DVD_AudioTrackLanguage,
+                                    t, 0, a)));
+
+                    setProperty(track, _("format"), obj->getAuxData(
+                                DVDHandler::renderKey(DVD_AudioTrackFormat, 
+                                    t, 0, a)));
+                }
+
+                JSObject *chapters = JS_NewArrayObject(cx, 0, NULL);
+                setObjectProperty(title, _("chapters"), chapters);
+
+                int chapter_count = obj->getAuxData(DVDHandler::renderKey(DVD_ChapterCount, t)).toInt();
+
+                for (int c = 0; c < chapter_count; c++)
+                {
+                    JSObject *chapter = JS_NewObject(cx, NULL, NULL, js);
+                    jsval val = OBJECT_TO_JSVAL(chapter);
+                    JS_SetElement(cx, chapters, c, &val);
+
+                    setProperty(chapter, _("duration"), obj->getAuxData(
+                                DVDHandler::renderKey(DVD_ChapterRestDuration,
+                                    t, c)));
+                }
+            }
+        }
+
+#endif
+#ifdef YOUTUBE
+        // put in meaningful names for YouTube specific enum values
+        String tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_AVG_RATING));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_AVG_RATING), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_KEYWORDS));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_KEYWORDS), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_AUTHOR));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_AUTHOR), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_FAVORITE_COUNT));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_FAVORITE_COUNT), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_VIEW_COUNT));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_VIEW_COUNT), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_RATING_COUNT));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_RATING_COUNT), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_FEED));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_FEED), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_SUBREQUEST_NAME));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_SUBREQUEST_NAME), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_CATEGORY));
+        if (string_ok(tmp))
+            aux->put(_(YOUTUBE_AUXDATA_CATEGORY), tmp);
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_REQUEST));
+        if (string_ok(tmp))
+        {
+            yt_requests_t req = (yt_requests_t)tmp.toInt();
+
+            // since subrequests do not actually produce any items they
+            // should not be visible to js
+            if (req == YT_subrequest_playlists)
+                req = YT_request_user_playlists;
+            else if (req == YT_subrequest_subscriptions)
+                req = YT_request_user_subscriptions;
+
+            setIntProperty(js, _("yt_request"), (int)req);
+            tmp = YouTubeService::getRequestName(req);
+            if (string_ok(tmp))
+                aux->put(_(YOUTUBE_AUXDATA_REQUEST), tmp);
+        }
+
+        tmp = obj->getAuxData(_(YOUTUBE_AUXDATA_REGION));
+        if (string_ok(tmp))
+        {
+            yt_regions_t reg = (yt_regions_t)tmp.toInt();
+            if (reg != YT_region_none)
+            {
+                tmp = YouTubeService::getRegionName(reg);
+                if (string_ok(tmp))
+                    aux->put(_(YOUTUBE_AUXDATA_REGION), tmp);
+            }
+        }
+#endif // YouTube
+#ifdef HAVE_ATRAILERSSSS
+        tmp = obj->getAuxData(_(ATRAILERS_AUXDATA_POST_DATE));
+        if (string_ok(tmp))
+            aux->put(_(ATRAILERS_AUXDATA_POST_DATE), tmp);
+#endif
+*/
+        Ref<Array<DictionaryElement> > elements = aux->getElements();
+        int len = elements->size();
+        for (int i = 0; i < len; i++)
+        {
+            Ref<DictionaryElement> el = elements->get(i);
+            //setProperty(aux_js, el->getKey(), el->getValue());
+            PyDict_SetItemString(self->aux,  el->getKey().c_str(), PyString_FromString(el->getValue().c_str()));
+            log_py("setting %13s: %s -> %s \n","aux[]",el->getKey().c_str(),el->getValue().c_str() );
+        }
+
+    }
+
+
+    /// \todo add resources
+
+    // CdsItem
+    if (IS_CDS_ITEM(objectType))
+    {
+        using namespace zmm;
+        Ref<CdsItem> item = RefCast(obj, CdsItem);
+        val = item->getMimeType();
+        if (val != nil){                
+                Py_INCREF(self->mimetype);
+                self->mimetype =  PyString_FromString(val.c_str());
+                log_py("setting %13s: %s \n","mimetype",val.c_str());
+        }
+            
+
+        val = item->getServiceID();
+        if (val != nil){                
+                Py_INCREF(self->serviceID);
+                self->serviceID =  PyString_FromString(val.c_str());
+                log_py("setting %13s: %s \n","serviceID",val.c_str());
+        }
+
+        if (IS_CDS_ACTIVE_ITEM(objectType))
+        {
+            Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
+            val = aitem->getAction();
+            if (val != nil){                
+                    Py_INCREF(self->action);
+                    self->action =  PyString_FromString(val.c_str());
+                    log_py("setting %13s: %s \n","action",val.c_str());
+            }
+            val = aitem->getState();
+            if (val != nil){                
+                    Py_INCREF(self->state);
+                    self->state =  PyString_FromString(val.c_str());
+                    log_py("setting %13s: %s \n","state",val.c_str());
+            }
+        }
+    }
+
+
+    // CdsDirectory
+    if (IS_CDS_CONTAINER(objectType))
+    {
+        using namespace zmm;
+        Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+        // TODO: boolean type, hide updateID
+        i = cont->getUpdateID();
+        if (i != INVALID_OBJECT_ID){
+				Py_INCREF(self->updateID);
+				self->id = PyInt_FromLong(i);
+				log_py("setting %13s: %d \n","updateID",i);
+        }
+
+        i = cont->isSearchable();
+        if (i != INVALID_OBJECT_ID){
+				Py_INCREF(self->searchable);
+				self->id = PyInt_FromLong(i);
+				log_py("setting %13s: %d \n","searchable",i);
+        }
+        
+    }
+
+		//
 		/* place holder */  
 		Py_INCREF(self->path);
 		self->path =  PyString_FromString("");
@@ -1236,6 +1514,26 @@ MediaTomb_dealloc(mediatomb_MediaTombObject* self)
         Py_XDECREF(self->upnpclass);
         Py_XDECREF(self->location);
         Py_XDECREF(self->path);
+
+        Py_XDECREF(self->restricted);
+        Py_XDECREF(self->theora);
+
+        PyDict_Clear(self->meta);
+        Py_XDECREF(self->meta);
+
+        PyDict_Clear(self->aux);
+        Py_XDECREF(self->aux);
+        
+        Py_XDECREF(self->mimetype);
+        Py_XDECREF(self->serviceID);
+        Py_XDECREF(self->action);
+        Py_XDECREF(self->state);
+
+        Py_XDECREF(self->updateID);
+        Py_XDECREF(self->searchable);
+
+
+
         self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -1287,7 +1585,82 @@ MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                         Py_DECREF(self);
                         return NULL;
                 }
-                
+
+                self->restricted = Py_None;
+                if (self->restricted == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+
+                self->theora = Py_None;
+                if (self->location == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+        
+				self->onlineservice = Py_None;
+                if (self->onlineservice == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+
+				self->meta = PyDict_New();
+                if (self->meta == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+
+				self->aux = PyDict_New();
+                if (self->aux == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+
+                self->mimetype = PyString_FromString("");
+                if (self->mimetype == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                self->serviceID = PyString_FromString("");
+                if (self->serviceID == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                self->action = PyString_FromString("");
+                if (self->action == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+                self->state = PyString_FromString("");
+                if (self->state == NULL)
+                {
+                        Py_DECREF(self);
+                        return NULL;
+                }
+
+                self->updateID = Py_None;
+                 if (self->updateID == NULL)
+                 {
+                         Py_DECREF(self);
+                         return NULL;
+                 }
+                 self->searchable = Py_None;
+                  if (self->searchable == NULL)
+                  {
+                          Py_DECREF(self);
+                          return NULL;
+                  }
+
+
+
                 self->path = PyString_FromString("");
                 if (self->path == NULL)
                 {
@@ -1320,6 +1693,45 @@ static PyMemberDef MediaTomb_Members[] = {
         {(char *)"location", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, location), 0,
          (char *)"location"
         },        
+
+        {(char *)"restricted", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject,restricted ), 0,
+         (char *)"restricted"
+        },
+
+        {(char *)"theora", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, theora), 0,
+         (char *)"theora"
+        },
+        {(char *)"onlineservice", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, onlineservice), 0,
+         (char *)"onlineservice"
+        },
+
+        {(char *)"meta", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, meta), 0,
+         (char *)"meta"
+        },
+
+        {(char *)"aux", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, aux), 0,
+         (char *)"aux"
+        },
+        {(char *)"mimetype", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, mimetype), 0,
+         (char *)"mimetype"
+        },
+        {(char *)"serviceID", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, serviceID), 0,
+         (char *)"serviceID"
+        },
+        {(char *)"action", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, action), 0,
+         (char *)"action"
+        },
+        {(char *)"state", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, state), 0,
+         (char *)"state"
+        },
+        
+        
+        {(char *)"updateID", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, updateID), 0,
+         (char *)"updateID"
+        },
+        {(char *)"searchable", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, searchable), 0,
+         (char *)"searchable"
+        },
 
         {(char *)"path", T_OBJECT_EX, offsetof(mediatomb_MediaTombObject, path), 0,
          (char *)"path"

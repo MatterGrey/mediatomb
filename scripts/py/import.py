@@ -1,4 +1,5 @@
 
+import pprint
 from time import time, ctime
 print "Ya Dawg, I heard you like bases?"
 
@@ -14,8 +15,12 @@ for k in dir(mediatomb):
 
 mediatomb.log( "stweeie said 'media'")
 media = mediatomb.MediaTomb()
+
+#media.meta['kittens']  = 'foo'
+
 for k in dir(media):
-    print "%20s -> %s" % (k, getattr(media,k))
+    print "%20s -> " % (k),
+    pprint.pprint( getattr(media,k) )
 
 mediatomb.log("bye")
 
