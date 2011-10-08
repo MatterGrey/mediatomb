@@ -1125,33 +1125,11 @@ Ref<CdsObject> Script::getProcessedObject()
 #include "tools.h"
 #include "metadata_handler.h"
 #include "mediatomb_py.h"
-//#include "js_functions.h"
 //#include "config_manager.h"
 
-static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
-        log_py("init me silly\n");
 
-        zmm::Ref<Runtime> runtime = Runtime::getInstance();
-        zmm::Ref<CdsObject> obj = runtime->getCdsObj();
-
-        zmm::String val;
-
-        
-        Py_INCREF(self->path);
-        self->path =  PyString_FromString("");;
-
-        val = obj->getLocation();
-        if (val != nil){                
-                Py_INCREF(self->location);
-                self->location =  PyString_FromString(val.c_str());
-                log_py("setting location :  %s \n",val.c_str());                
-        }
-        log_py("init that \n");
-        return 0;
-}
-
-
-static PyObject* mediatomb_getObj(PyObject *self, PyObject *args) {
+// Dummy function that returns 42.
+static PyObject* mediatomb_getfourtytwo(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", "42");
 }
 
@@ -1183,12 +1161,81 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
         
 }
 
+
+static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
+        log_py("init me silly\n");
+
+        zmm::Ref<Runtime> runtime = Runtime::getInstance();
+        zmm::Ref<CdsObject> obj = runtime->getCdsObj();
+
+        zmm::String val;
+        int i ;
+
+		// ObjectType always exists
+		i = obj->getObjectType();
+		Py_INCREF(self->objectType);
+		self->objectType = PyInt_FromLong(i);
+		log_py("setting objectType :  %l \n",i);
+        
+        i = obj->getID();
+        if (i != INVALID_OBJECT_ID){
+				Py_INCREF(self->id);
+				self->id = PyInt_FromLong(i);
+				log_py("setting id :  %l \n",i);
+        }
+       
+
+        i = obj->getParentID();                
+        if (i != INVALID_OBJECT_ID){
+				Py_INCREF(self->parentID);
+				self->parentID = PyInt_FromLong(i);
+                log_py("setting parentID :  %d \n",i);
+        }
+        val = obj->getTitle();
+        if (val != nil){
+                Py_INCREF(self->title);
+                self->title =  PyString_FromString(val.c_str());
+                log_py("setting title :  %s \n",val.c_str());
+        }
+        
+        val = obj->getClass();
+        if (val != nil){
+                Py_INCREF(self->upnpclass);
+                self->upnpclass =  PyString_FromString(val.c_str());
+                log_py("upnpclass :  %s \n",val.c_str());
+        }
+
+        val = obj->getLocation();
+        if (val != nil){                
+                Py_INCREF(self->location);
+                self->location =  PyString_FromString(val.c_str());
+                log_py("setting location :  %s \n",val.c_str());                
+        }
+
+
+		
+		/* place holder */  
+		Py_INCREF(self->path);
+		self->path =  PyString_FromString("");
+
+        log_py("init that \n");
+        return 0;
+}
+
+
+
+
 static void
 MediaTomb_dealloc(mediatomb_MediaTombObject* self)
 {
         log_py("bye-bye memory");
-        Py_XDECREF(self->path);
+        Py_XDECREF(self->objectType);
+        Py_XDECREF(self->id);
+        Py_XDECREF(self->parentID);
+        Py_XDECREF(self->title);
+        Py_XDECREF(self->upnpclass);
         Py_XDECREF(self->location);
+        Py_XDECREF(self->path);
         self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -1286,9 +1333,9 @@ static PyMemberDef MediaTomb_Members[] = {
 
 
 static PyMethodDef MediaTomb_Methods[] = {
-        // {"__init__", mediatomb_init,METH_NOARGS,"initialize mediatomb" },
+        //{"__init__", mediatomb_init,METH_NOARGS,"initialize mediatomb" },
         
-        {"getObj", mediatomb_getObj , METH_NOARGS , "Return current Media Object"},
+        {"getfourtytwo", mediatomb_getfourtytwo , METH_NOARGS , "Return 42"},
         {"log"   , mediatomb_log    , METH_VARARGS, "print to mediatomb logger"  },
         {NULL, NULL, 0, NULL}
 };
