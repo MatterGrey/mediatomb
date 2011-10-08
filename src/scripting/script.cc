@@ -1135,10 +1135,9 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         zmm::Ref<CdsObject> obj = runtime->getCdsObj();
 
         zmm::String val;
-
         
         Py_INCREF(self->path);
-        self->path =  PyString_FromString("");;
+        self->path =  PyString_FromString("test");;
 		
 		val = obj->getTitle();
 		if (val !=nil){
@@ -1146,12 +1145,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 				self->title = PyString_FromString(val.c_str());
 				log_py("Setting Title %s \n",val.c_str());
 		}
-        val = obj->getPath();
-        if (val !=nul){
-				Py_INCREG(self->path);
-				self->path = PyString_FromString(val.c_str());
-				log_py("Setting Path %s \n",val.c_str());
-		}
+        
         val = obj->getLocation();
         if (val != nil){                
                 Py_INCREF(self->location);
@@ -1166,7 +1160,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 static PyObject* mediatomb_getObj(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", "42");
 }
-
+// PY Logger 
 static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
 
         int argc = PyTuple_Size(args);
@@ -1194,7 +1188,7 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
         Py_RETURN_NONE;
         
 }
-
+//Dealloc method
 static void
 MediaTomb_dealloc(mediatomb_MediaTombObject* self)
 {
@@ -1203,7 +1197,7 @@ MediaTomb_dealloc(mediatomb_MediaTombObject* self)
         Py_XDECREF(self->location);
         self->ob_type->tp_free((PyObject*)self);
 }
-
+// Initialise new Object 
 static PyObject *
 MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
