@@ -18,6 +18,22 @@ typedef struct
         PyObject *upnpclass;
         PyObject *location;
 
+        PyObject *restricted;
+        PyObject *theora;
+
+        PyObject *onlineservice;
+
+        PyObject *meta;
+        PyObject *aux;
+        
+        PyObject *mimetype;
+        PyObject *serviceID;
+        PyObject *action;
+        PyObject *state;
+        
+        PyObject *updateID;
+        PyObject *searchable;
+        
         PyObject *path;
 
         
