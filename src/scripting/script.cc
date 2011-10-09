@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 /*MT*
     
     MediaTomb - http://www.mediatomb.cc/
@@ -1937,4 +1935,4 @@ PyObject *Script::getObjectProperty(PyObject *obj, String name)
 
 
 #endif // HAVE_PYTHON
->>>>>>> upstream/python
+

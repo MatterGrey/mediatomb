@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-=======
-
 import pprint
 from time import time, ctime
 print "Ya Dawg, I heard you like bases?"
@@ -27,20 +24,3 @@ for k in dir(media):
 mediatomb.log("bye")
 
 
-#print media
-
-# mediatomb.log( "path:%s , location:%s" % (media.path(), media.location()) )
-
-#mediatomb.log( "foo %s " % media.path )
-#media.path = "kittens!"
-
-#mediatomb.log( "foo %s " % media.path )
-# mediatomb.log( "path:%s , location:%s" % (media.path, media.location) )
-
-
-#mediatomb.log("bye")
-# get the current object
-# switch on mime
-
-
->>>>>>> upstream/python

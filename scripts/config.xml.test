@@ -52,14 +52,8 @@
   </server>
   <import hidden-files="no">
     <scripting script-charset="UTF-8">
-<<<<<<< HEAD
       <virtual-layout type="py">
         <import-script>/home/matthew/Projects/mediatomb/scripts/py/import.py</import-script>
-=======
-      <virtual-layout type="py"><!-- <import-script>/usr/share/mediatomb/js/import.js</import-script>-->
-        <import-script>/home/alexs/Devel/mediatomb/mediatomb/scripts/py/import.py</import-script>
-        <!-- <dvd-script>/opt/mediatomb/usr/share/mediatomb/js/import-dvd.js</dvd-script> -->
->>>>>>> upstream/python
       </virtual-layout>
     </scripting>
     <mappings>
