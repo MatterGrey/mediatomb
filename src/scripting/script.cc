@@ -1241,14 +1241,15 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
         
         {
 
-            Ref<CdsObject> cds_obj;
+                zmm::Ref<CdsObject> cds_obj;
             zmm::Ref<ContentManager> cm = ContentManager::getInstance();
             int pcd_id = INVALID_OBJECT_ID;
-            if (whoami() == S_PLAYLIST){
+            if (whoami == S_PLAYLIST){
                 log_py("do not care about play lists \n");
             }
             else{
-                cds_obj = self->jsObject2cdsObject(js_cds_obj, orig_object);
+               log_py("beware here be dragons \n");
+                    // cds_obj = self->jsObject2cdsObject(js_cds_obj, orig_object);
 
             }
 
