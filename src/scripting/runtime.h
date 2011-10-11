@@ -65,6 +65,12 @@ public:
 #include "singleton.h"
 #include "cds_objects.h"
 
+typedef enum
+{
+    S_IMPORT = 0,
+    S_PLAYLIST,
+    S_DVD
+} script_class_t;
 
 /// \brief Runtime class definition.
 class Runtime : public Singleton<Runtime>
@@ -73,6 +79,7 @@ protected:
         // JSRuntime *rt;
         // int *rt;
         zmm::Ref<CdsObject> obj;
+
 public:
     Runtime();
     virtual ~Runtime();
@@ -81,7 +88,7 @@ public:
     //JSRuntime *getRT() { return rt; }
     zmm::Ref<CdsObject> getCdsObj() { return obj; }
     void setCdsObj(  zmm::Ref<CdsObject> cdsObj ) { obj = cdsObj; }
-
+    script_class_t whoami ;
     
 };
 

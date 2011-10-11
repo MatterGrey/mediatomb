@@ -35,7 +35,7 @@
 
 #ifdef HAVE_JS
 
-
+#include <jsapi.h>
 #include "import_script.h"
 #include "config_manager.h"
 #include "js_functions.h"
@@ -54,8 +54,13 @@ ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
     try 
     {
         load(scriptPath);
+#ifndef JS_MOZLIB185 
         root = JS_NewScriptObject(cx, script);
         JS_AddNamedRoot(cx, &root, "ImportScript");
+#else
+        root = script;
+        JS_AddNamedObjectRoot(cx, &root, "ImportScript");
+#endif
     }
     catch (Exception ex)
     {
@@ -118,7 +123,11 @@ ImportScript::~ImportScript()
 #endif
     
     if (root)
+#ifndef JS_MOZLIB185 
         JS_RemoveRoot(cx, &root);
+#else
+        JS_RemoveObjectRoot(cx, &root);
+#endif
 
 #ifdef JS_THREADSAFE
     JS_EndRequest(cx);

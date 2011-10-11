@@ -47,8 +47,15 @@ using namespace zmm;
 extern "C" {
 
 static JSBool
+#ifndef JS_MOZLIB185 
 js_readln(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+js_readln(JSContext *cx, uintN argc, jsval *rval)
+{
+   JSObject *obj = JS_THIS_OBJECT(cx, rval);
+#endif
+
     PlaylistParserScript *self = (PlaylistParserScript *)JS_GetPrivate(cx, obj);
 
     String line;
@@ -91,11 +98,19 @@ PlaylistParserScript::PlaylistParserScript(Ref<Runtime> runtime) : Script(runtim
     try
     {
         defineFunction(_("readln"), js_readln, 0);
-
+       
         String scriptPath = ConfigManager::getInstance()->getOption(CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT); 
         load(scriptPath);
+#ifndef JS_MOZLIB185 
         root = JS_NewScriptObject(cx, script);
         JS_AddNamedRoot(cx, &root, "PlaylistScript");
+#else
+        root = script;
+        JS_AddNamedObjectRoot(cx, &root, "PlaylistScript");
+#endif
+
+      
+
     }
     catch (Exception ex)
     {
@@ -246,7 +261,12 @@ PlaylistParserScript::~PlaylistParserScript()
 #endif
 
     if (root)
+#ifndef JS_MOZLIB185 
         JS_RemoveRoot(cx, &root);
+#else
+        JS_RemoveObjectRoot(cx, &root);
+#endif
+      
 
 #ifdef JS_THREADSAFE
     JS_EndRequest(cx);
