@@ -69,9 +69,14 @@ public:
     JSRuntime *rt;
     JSContext *cx;
     JSObject  *glob;
+#ifndef JS_MOZLIB185     
     JSScript *script;
     JSScript *common_script;
-    
+#else
+    JSObject *script;
+    JSObject *common_script;
+#endif
+
 public:
     Script(zmm::Ref<Runtime> runtime);
     virtual ~Script();
@@ -118,10 +123,17 @@ private:
     
 
     JSObject *common_root;
-    
     void initGlobalObject();
+#ifndef JS_MOZLIB185     
     JSScript *_load(zmm::String scriptPath);
     void _execute(JSScript *scr);
+#else
+    JSObject *_load(zmm::String scriptPath);
+    void _execute(JSObject *scr);
+#endif
+
+
+
     zmm::Ref<StringConverter> _p2i;
     zmm::Ref<StringConverter> _j2i;
     zmm::Ref<StringConverter> _f2i;
@@ -145,12 +157,7 @@ private:
 // perform garbage collection after script has been run for x times
 #define JS_CALL_GC_AFTER_NUM    (1000)
 
-typedef enum
-{
-    S_IMPORT = 0,
-    S_PLAYLIST,
-    S_DVD
-} script_class_t;
+
 
 typedef enum
 {
@@ -178,6 +185,9 @@ public:
 
     void load(zmm::String scriptPath);
     void setPyObj(zmm::Ref<CdsObject> obj);
+
+    //  virtual script_class_t whoami() = 0;
+
     /*
     zmm::String getProperty(PyObject *obj, zmm::String name);
     int getBoolProperty(PyObject *obj, zmm::String name);
@@ -203,7 +213,7 @@ public:
     zmm::Ref<CdsObject> pyObject2cdsObject(PyObject *py, zmm::Ref<CdsObject> pcd);
     void cdsObject2PyObject(zmm::Ref<CdsObject> obj, PyObject *py);
     
-    virtual script_class_t whoami() = 0;
+
 
     zmm::Ref<CdsObject> getProcessedObject(); 
 

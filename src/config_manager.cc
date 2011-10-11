@@ -1619,7 +1619,7 @@ void ConfigManager::validate(String serverhome)
 #ifndef HAVE_PYTHON
     if (temp == "js" || temp == "py" )
         throw _Exception(_("MediaTomb was compiled without js or py support, "
-                           "however you specified \""+ temp +"\" to be used for the "
+                           "however you specified to use a "
                            "virtual-layout."));
 #endif //HAVE_PYTHON
 #endif //HAVE_JS

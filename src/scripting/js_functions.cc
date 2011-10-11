@@ -49,9 +49,16 @@ using namespace zmm;
 
 extern "C" {
 
-JSBool 
+JSBool
+#ifndef JS_MOZLIB185  
 js_print(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+js_print(JSContext *cx, uintN argc, jsval *rval)
+{
+    //JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
     uintN i;
     JSString *str;
 
@@ -61,14 +68,26 @@ js_print(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
         if (!str)
             return JS_TRUE;
         argv[i] = STRING_TO_JSVAL(str);
+#ifndef JS_MOZLIB185 
         log_js("%s\n", JS_GetStringBytes(str));
+#else
+        log_js("%s\n", JS_EncodeString(cx,str));
+#endif
     }
     return JS_TRUE;
 }
 
 JSBool
+#ifndef JS_MOZLIB185  
 js_copyObject(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+js_copyObject(JSContext *cx, uintN argc, jsval *rval)
+{
+    JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
+
     jsval arg;
     JSObject *js_cds_obj;
     JSObject *js_cds_clone_obj;
@@ -111,8 +130,16 @@ js_copyObject(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 }
 
 JSBool
+#ifndef JS_MOZLIB185  
 js_addCdsObject(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+js_addCdsObject(JSContext *cx, uintN argc, jsval *rval)
+{
+    JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
+
     try
     {
         jsval arg;
@@ -154,18 +181,31 @@ js_addCdsObject(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
         argv[0] = OBJECT_TO_JSVAL(js_cds_obj);
 
         str = JS_ValueToString(cx, argv[1]);
+        //log_js("str: %s", str);
         if (!str)
             path = _("/");
         else
+#ifndef JS_MOZLIB185 
             path = JS_GetStringBytes(str);
+#else
+            path = JS_EncodeString(cx,str);
+#endif
+
 
         JSString *cont = JS_ValueToString(cx, argv[2]);
         if (cont)
         {
+#ifndef JS_MOZLIB185 
             containerclass = JS_GetStringBytes(cont);
+#else
+            containerclass = JS_EncodeString(cx,cont);               
+#endif
+      
             if (!string_ok(containerclass) || containerclass == "undefined")
                 containerclass = nil;
         }
+        log_js("ctainerclass: [%s]", cont);
+
 
         if (self->whoami() == S_PLAYLIST)
             js_orig_obj = self->getObjectProperty(obj, _("playlist"));
@@ -322,7 +362,13 @@ static JSBool convert_charset_generic(JSContext *cx, JSObject *obj, uintN argc, 
         {
             str = JS_ValueToString(cx, argv[0]);
             if (str)
-                result = JS_GetStringBytes(str);
+#ifndef JS_MOZLIB185 
+            
+            result = JS_GetStringBytes(str);
+#else            
+            result = JS_EncodeString(cx,str);
+#endif
+                
         }
 
         if (result != nil)
@@ -348,23 +394,57 @@ static JSBool convert_charset_generic(JSContext *cx, JSObject *obj, uintN argc, 
 }
 
 
+#ifndef JS_MOZLIB185  
 JSBool js_f2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+JSBool js_f2i(JSContext *cx, uintN argc, jsval *rval)
+{
+    JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
      return convert_charset_generic(cx, obj, argc, argv, rval, F2I);
 }
 
+
+#ifndef JS_MOZLIB185  
 JSBool js_m2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+JSBool js_m2i(JSContext *cx, uintN argc, jsval *rval)
+{
+    JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
+
      return convert_charset_generic(cx, obj, argc, argv, rval, M2I);
 }
 
+#ifndef JS_MOZLIB185  
 JSBool js_p2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+JSBool js_p2i(JSContext *cx, uintN argc, jsval *rval)
+{
+    JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
+
      return convert_charset_generic(cx, obj, argc, argv, rval, P2I);
 }
 
+
+#ifndef JS_MOZLIB185  
 JSBool js_j2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+#else
+JSBool js_j2i(JSContext *cx, uintN argc, jsval *rval)
+{
+    JSObject *obj = JS_THIS_OBJECT(cx, rval);
+    jsval *argv = JS_ARGV(cx,rval);
+#endif 
+
+
      return convert_charset_generic(cx, obj, argc, argv, rval, J2I);
 }
 

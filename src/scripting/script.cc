@@ -87,7 +87,13 @@ String Script::getProperty(JSObject *obj, String name)
     str = JS_ValueToString(cx, val);
     if (! str)
         return nil;
+
+#ifndef JS_MOZLIB185
     return JS_GetStringBytes(str);
+#esle
+    return JS_EncodeString(str);
+#endif
+    return nil;
 }
 
 int Script::getBoolProperty(JSObject *obj, String name)
@@ -426,16 +432,27 @@ static JSFunctionSpec js_global_functions[] = {
     {
         try
         {
+
+
+#ifndef JS_MOZLIB185 
             common_script = _load(common_scr_path);
             common_root = JS_NewScriptObject(cx, common_script);
             JS_AddNamedRoot(cx, &common_root, "common-script");
+#else
+            common_root = common_script = _load(common_scr_path);
+            JS_AddNamedObjectRoot(cx, &common_root, "common-script");
+#endif
+    
             _execute(common_script);
         }
         catch (Exception e)
         {
             if (common_root)
+#ifndef JS_MOZLIB185 
                 JS_RemoveRoot(cx, &common_root);
-
+#else
+                JS_RemoveObjectRoot(cx, &common_root);
+#endif
             log_js("Unable to load %s: %s\n", common_scr_path.c_str(), 
                     e.getMessage().c_str());
         }
@@ -460,7 +477,11 @@ Script::~Script(){
     JS_BeginRequest(cx);
 #endif
     if (common_root)
+#ifndef JS_MOZLIB185 
         JS_RemoveRoot(cx, &common_root);
+#else
+        JS_RemoveObjectRoot(cx, &common_root);
+#endif
 
 /*
  * scripts are unrooted and will be cleaned up by GC
@@ -504,20 +525,31 @@ void Script::initGlobalObject()
     static JSClass global_class =
     {
         "global",                                   /* name */
+#ifndef JS_MOZLIB185     
         JSCLASS_HAS_PRIVATE,                        /* flags */
+#else     
+        JSCLASS_HAS_PRIVATE | JSCLASS_GLOBAL_FLAGS, /* flags */
+#endif
         JS_PropertyStub,                            /* add property */
         JS_PropertyStub,                            /* del property */
         JS_PropertyStub,                            /* get property */
+#ifndef JS_MOZLIB185     
         JS_PropertyStub,                            /* set property */
+#else
+        JS_StrictPropertyStub,                      /* set property */
+#endif
         JS_EnumerateStandardClasses,                /* enumerate */
         JS_ResolveStub,                             /* resolve */
         JS_ConvertStub,                             /* convert */
         JS_FinalizeStub,                            /* finalize */
         JSCLASS_NO_OPTIONAL_MEMBERS
     };
-
     /* create the global object here */
+#ifndef JS_MOZLIB185     
     glob = JS_NewObject(cx, &global_class, NULL, NULL);
+#else
+    glob = JS_NewCompartmentAndGlobalObject(cx, &global_class,NULL);
+#endif
     if (! glob)
         throw _Exception(_("Scripting: could not initialize glboal class"));
 
@@ -539,12 +571,20 @@ void Script::defineFunctions(JSFunctionSpec *functions)
         throw _Exception(_("Scripting: JS_DefineFunctions failed"));
 }
 
+#ifndef JS_MOZLIB185 
 JSScript *Script::_load(zmm::String scriptPath)
+#else
+JSObject *Script::_load(zmm::String scriptPath)
+#endif
 {
     if (glob == NULL)
         initGlobalObject();
 
+#ifndef JS_MOZLIB185 
     JSScript *scr;
+#else
+    JSObject *scr;
+#endif
 
     String scriptText = read_text_file(scriptPath);
 
@@ -561,8 +601,7 @@ JSScript *Script::_load(zmm::String scriptPath)
         throw _Exception(_("Failed to convert import script:") + e.getMessage().c_str());
     }
 
-    scr = JS_CompileScript(cx, glob, scriptText.c_str(), scriptText.length(),
-            scriptPath.c_str(), 1);
+    scr = JS_CompileScript(cx, glob, scriptText.c_str(), scriptText.length(), scriptPath.c_str(), 1);
     if (! scr)
         throw _Exception(_("Scripting: failed to compile ") + scriptPath);
 
@@ -571,14 +610,20 @@ JSScript *Script::_load(zmm::String scriptPath)
 
 void Script::load(zmm::String scriptPath)
 {
+
+#ifndef JS_MOZLIB185     
     if (script)
         JS_DestroyScript(cx, script);
+#endif
 
     script = _load((scriptPath));
 }
 
-
+#ifndef JS_MOZLIB185 
 void Script::_execute(JSScript *scr)
+#else
+void Script::_execute(JSObject *scr)
+#endif 
 {
     jsval ret_val;
 
@@ -662,7 +707,11 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
     JSObject *js_meta = getObjectProperty(js, _("meta"));
     if (js_meta)
     {
+#ifndef JS_MOZLIB185 
         JS_AddNamedRoot(cx, &js_meta, "meta");
+#else
+        JS_AddNamedObjectRoot(cx, &js_meta, "meta");
+#endif
         /// \todo: only metadata enumerated in MT_KEYS is taken
         for (int i = 0; i < M_MAX; i++)
         {
@@ -687,7 +736,11 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
                 }
             }
         }
+#ifndef JS_MOZLIB185 
         JS_RemoveRoot(cx, &js_meta);
+#else
+        JS_RemoveObjectRoot(cx, &js_meta);
+#endif
     }
     
     // stuff that has not been exported to js
@@ -1118,18 +1171,22 @@ Ref<CdsObject> Script::getProcessedObject()
 
 #ifdef HAVE_PYTHON
 
-#include <Python.h>
-#include "structmember.h"
+
+
 
 #include "script.h"
 #include "tools.h"
 #include "metadata_handler.h"
 #include "mediatomb_py.h"
-//#include "config_manager.h"
+#include "config_manager.h"
+#include "content_manager.h"
 #ifdef ONLINE_SERVICES
     #include "online_service.h"
 #endif
 
+extern "C" {
+#include <Python.h>
+#include "structmember.h"
 
 // Dummy function that returns 42.
 static PyObject* mediatomb_getfourtytwo(PyObject *self, PyObject *args) {
@@ -1163,6 +1220,47 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
         Py_RETURN_NONE;
         
 }
+static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
+        
+        zmm::Ref<Runtime> runtime = Runtime::getInstance();
+        PyObject* media ;
+        PyObject* chain ;
+        char * container;
+
+        int r =  PyArg_ParseTuple(args,"OS" , &media , &chain);
+        
+        /* yack, this should be part of the python object not the runtime */
+        int whoami = runtime->whoami;
+        //log_py("whoami %d\n",whoami);
+
+        container = PyString_AsString(chain);
+        if (0 == PyOS_stricmp(container,"")){
+            container = "undefined";
+        }
+        log_py("container [%s]\n",container);
+        
+        {
+
+            Ref<CdsObject> cds_obj;
+            zmm::Ref<ContentManager> cm = ContentManager::getInstance();
+            int pcd_id = INVALID_OBJECT_ID;
+            if (whoami() == S_PLAYLIST){
+                log_py("do not care about play lists \n");
+            }
+            else{
+                cds_obj = self->jsObject2cdsObject(js_cds_obj, orig_object);
+
+            }
+
+
+        }
+        Py_RETURN_NONE;
+}
+
+static PyObject* mediatomb_copyObject(PyObject *self, PyObject *args) {
+        return Py_BuildValue("s", "42");
+}
+
 
 static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         log_py("init me silly\n");
@@ -1173,6 +1271,9 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         zmm::String val;
         int i ;
         int objectType;
+
+        // setup whom we are : yeeeewwwww
+        self->whoami = runtime->whoami ;
 
 		// ObjectType always exists
 		objectType = i = obj->getObjectType();
@@ -1747,8 +1848,12 @@ static PyMemberDef MediaTomb_Members[] = {
 static PyMethodDef MediaTomb_Methods[] = {
         //{"__init__", mediatomb_init,METH_NOARGS,"initialize mediatomb" },
         
-        {"getfourtytwo", mediatomb_getfourtytwo , METH_NOARGS , "Return 42"},
-        {"log"   , mediatomb_log    , METH_VARARGS, "print to mediatomb logger"  },
+        {"getfourtytwo" , mediatomb_getfourtytwo  , METH_NOARGS , "Return 42"},
+        {"log"          , mediatomb_log           , METH_VARARGS, "print to mediatomb's logger"  },
+        {"addCdsObject" , mediatomb_addCdsObject  , METH_VARARGS, "Adds a virtual object to the server database"  },
+        {"copyObject"   , mediatomb_copyObject    , METH_VARARGS, "Returns a copy of the virtual object"  },
+
+
         {NULL, NULL, 0, NULL}
 };
 
@@ -1817,7 +1922,7 @@ init_mediatomb(void)
         PyModule_AddObject(m, "MediaTomb", (PyObject *)&mediatomb_MediaTombType);
 }
 
-
+} // enf of extern C
 
 // --------------
 
@@ -1830,8 +1935,9 @@ Script::Script(Ref<Runtime> runtime) : Object()
 {
         log_py("Pyton Engine, ver%s\n" , Py_GetVersion() );
 
-                
+        runtime->whoami = S_IMPORT ;
         this->runtime = runtime;        
+
         /* start up my python runtime */ 
         Py_Initialize();
         init_mediatomb();

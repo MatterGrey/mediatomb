@@ -39,6 +39,7 @@
 
 extern "C" {
 
+#ifndef JS_MOZLIB185  
 /// \brief Log output.
 JSBool js_print(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
@@ -52,6 +53,22 @@ JSBool js_f2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 JSBool js_m2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool js_p2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool js_j2i(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+#else
+/// \brief Log output.
+JSBool js_print(JSContext *cx, uintN argc, jsval *rval);
+
+/// \brief Adds an object to the database.
+JSBool js_addCdsObject(JSContext *cx, uintN argc, jsval *rval);
+
+/// \brief Makes a copy of an CDS object.
+JSBool js_copyObject(JSContext *cx, uintN argc, jsval *rval);
+
+JSBool js_f2i(JSContext *cx, uintN argc, jsval *rval);
+JSBool js_m2i(JSContext *cx, uintN argc, jsval *rval);
+JSBool js_p2i(JSContext *cx, uintN argc, jsval *rval);
+JSBool js_j2i(JSContext *cx, uintN argc, jsval *rval);
+#endif
 
 } // extern "C"
 

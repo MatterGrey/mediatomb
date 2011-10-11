@@ -1091,35 +1091,46 @@ if test "x$JS_OK" = xyes; then
                             JS_LIBS="-lmozjs"
                         ],
                         [
-                            LDFLAGS="-L$SEARCH_DIR_LIBS $LDFLAGS_SAVE $ADD_PTHREAD_CFLAGS"
-                            unset ac_cv_lib_js_JS_NewObject
-                            AC_CHECK_LIB(js, JS_NewObject,
+                            LDFLAGS="`/usr/bin/pkg-config --libs mozjs185` " 
+                            unset ac_cv_lib_smjs_JS_NewObject
+                            AC_CHECK_LIB(mozjs185, JS_NewObject,
                                 [
-                                    JS_LIBS="-L$SEARCH_DIR_LIBS -ljs"
-                                    MOZLIB=js
+                                    MOZLIB=mozjs185
+                                    JS_PKG_CFG=yes
+                                    AC_DEFINE([JS_MOZLIB185], [1], [libmoz185 presence]) 
                                 ],
                                 [
-                                    unset ac_cv_lib_smjs_JS_NewObject
-                                    AC_CHECK_LIB(smjs, JS_NewObject,
+                                    LDFLAGS="-L$SEARCH_DIR_LIBS $LDFLAGS_SAVE $ADD_PTHREAD_CFLAGS"
+                                    unset ac_cv_lib_js_JS_NewObject
+                                    AC_CHECK_LIB(js, JS_NewObject,
                                         [
-                                            JS_LIBS="-L$SEARCH_DIR_LIBS -lsmjs"
-                                            MOZLIB=smjs
+                                            JS_LIBS="-L$SEARCH_DIR_LIBS -ljs"
+                                            MOZLIB=js
                                         ],
                                         [
-                                            LDFLAGS="-L$SEARCH_DIR_LIBS $LDFLAGS_SAVE -lmozjs"
-                                            unset ac_cv_lib_mozjs_JS_NewObject
-                                            AC_CHECK_LIB(mozjs, JS_NewObject,
+                                            unset ac_cv_lib_smjs_JS_NewObject
+                                            AC_CHECK_LIB(smjs, JS_NewObject,
                                                 [
-                                                    JS_LIBS="-L$SEARCH_DIR_LIBS -lmozjs"
-                                                    MOZLIB=mozjs
+                                                    JS_LIBS="-L$SEARCH_DIR_LIBS -lsmjs"
+                                                    MOZLIB=smjs
                                                 ],
                                                 [
-                                                    JS_OK=missing
-                                                    AC_MSG_RESULT(libjs/libsmjs link failed, giving up)
-                                                ]
-                                            )
-                                        ]
-                                    )
+                                                    LDFLAGS="-L$SEARCH_DIR_LIBS $LDFLAGS_SAVE -lmozjs"
+                                                    unset ac_cv_lib_mozjs_JS_NewObject
+                                                    AC_CHECK_LIB(mozjs, JS_NewObject,
+                                                        [
+                                                            JS_LIBS="-L$SEARCH_DIR_LIBS -lmozjs"
+                                                            MOZLIB=mozjs
+                                                        ],
+                                                        [
+                                                            JS_OK=missing
+                                                            AC_MSG_RESULT(libjs/libsmjs link failed, giving up)
+                                                        ]
+                                                    )
+                                                ]    
+                                           )
+                                       ]
+                                   )
                                 ]
                             )
                         ]
@@ -1132,12 +1143,22 @@ if test "x$JS_OK" = xyes; then
 fi
 if test "x$JS_OK" = xyes; then
     AC_DEFINE([HAVE_JS], [1], [libjs presence])
-    AC_SUBST(JS_CXXFLAGS)
-    AC_SUBST(JS_LIBS)
+
+
+
+
+    if test "x$JS_PKG_CFG" = xyes; then
+        JS_LIBS="`/usr/bin/pkg-config --libs $MOZLIB`" 
+        JS_CXXFLAGS="`/usr/bin/pkg-config --cflags $MOZLIB`"
+    fi
 
     LDFLAGS="$LDFLAGS $JS_LIBS"
     CFLAGS="$CFLAGS $JS_CXXFLAGS"
     CXXFLAGS="$CXXFLAGS $JS_CXXFLAGS"
+    
+
+    AC_SUBST(JS_CXXFLAGS)
+    AC_SUBST(JS_LIBS)
 
     AC_CHECK_LIB($MOZLIB, JS_ClearContextThread,
             [
