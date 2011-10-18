@@ -3,7 +3,8 @@ import mediatomb
 import re
 
 def getYear(date):
-	return ()
+	# place holder 
+	return (date[:4])
 
 def escapeSlash(name):
 
@@ -44,10 +45,6 @@ def addVideo(media):
 	
 def addAudio(media):
 	#Gather Information
-	"""	
-	Keys ['upnp:originalTrackNumber', 'dc:title', 'upnp:artist', 'dc:date', 'upnp:genre', 'upnp:album', 'dc:description']
-	"""
-	
 	desc = ''; 
 	artist_full = '';
 	album_full = '' ; 
@@ -76,8 +73,7 @@ def addAudio(media):
 	if desc:
 		desc = desc + ',';
 		desc = desc + title;
-		mediatomb.log("Description: %s " % desc);
-	
+		
 	if not media.meta['dc:date']:
 		date = 'unknow';
 	else:
@@ -91,11 +87,11 @@ def addAudio(media):
 		
 	if not media.meta['dc:description']:
 		media.meta['dc:description'] = desc;
-		
-	"""
-				
-	"""
-"""
+	
+	mediatomb.log("Description: %s " % desc);
+	## Start to add media
+	
+	""" Add track to album view , TODO rewrite this horrible bit of code 
 	track = media.meta['upnp:originalTrackNumber'];
 	if track == '':
 		track = '';   # TODO
@@ -105,54 +101,47 @@ def addAudio(media):
                 track = '0' + track;
 			track = track + ' ';
 	"""
-	#track = '' ;
-	#chain = arry('Audio,All,Audio');
+	"""
+    chain =  ['Video', 'All Video'];
+    mediatomb.log("Chain : %s" % createContainerChain(chain) )   
+    mediatomb.addCdsObject(media, createContainerChain(chain) );
+    """
+	addCdsObject = mediatomb.addCdsObject;
+	track = '' ;   # part of above todo
+	chain = ['Audio,All,Audio'];
+	media.title = title; ## why
+	addCdsObject(media,createContainerChain(chain));	
 	
-"""
-function addAudio(obj)
-{
-       
-*/
-    // comment the following line out if you uncomment the stuff above  :)
-    var track = '';
-
-    var chain = new Array('Audio', 'All Audio');
-    obj.title = title;
-    addCdsObject(obj, createContainerChain(chain));
-    
-    chain = new Array('Audio', 'Artists', artist, 'All Songs');
-    addCdsObject(obj, createContainerChain(chain));
-    
-    chain = new Array('Audio', 'All - full name');
-    var temp = '';
-    if (artist_full)
-        temp = artist_full;
-    
-    if (album_full)
-        temp = temp + ' - ' + album_full + ' - ';
-    else
-        temp = temp + ' - ';
-   
-    obj.title = temp + title;
-    addCdsObject(obj, createContainerChain(chain));
-    
-    chain = new Array('Audio', 'Artists', artist, 'All - full name');
-    addCdsObject(obj, createContainerChain(chain));
-    
-    chain = new Array('Audio', 'Artists', artist, album);
-    obj.title = track + title;
-    addCdsObject(obj, createContainerChain(chain), UPNP_CLASS_CONTAINER_MUSIC_ALBUM);
-    
-    chain = new Array('Audio', 'Albums', album);
-    obj.title = track + title; 
-    addCdsObject(obj, createContainerChain(chain), UPNP_CLASS_CONTAINER_MUSIC_ALBUM);
-    
-    chain = new Array('Audio', 'Genres', genre);
-    addCdsObject(obj, createContainerChain(chain), UPNP_CLASS_CONTAINER_MUSIC_GENRE);
-    
-    chain = new Array('Audio', 'Year', date);
-    addCdsObject(obj, createContainerChain(chain));
-}"""
+	chain = ['Audio','Artists',artist,'All Songs'];
+	addCdsObject(media,createContainerChain(chain));	
+	
+	chain = ['Audio','All - full name'];
+	if (artist_full):
+		temp = artist_full;
+	if (album_full):
+		temp = temp + ' - ' + album_full + ' - ';
+	else:
+		temp = temp +' - ';
+	media.title= temp + title;
+	addCdsObject(media,createContainerChain(chain));
+	
+	chain = ['Audio' ,'Artists' , artist , 'All - full name'];
+	addCdsObject(media,createContainerChain(chain));
+	
+	chain = ['Audio' , 'Artists' , artist , album];
+	addCdsObject(media,createContainerChain(chain)); 
+	media.title = track + title;
+	addCdsObject(media,createContainerChain(chain)); # UPNP_CLASS_CONTAINER_MUSIC ALBUM need to find out about this?
+	
+	chain = ['Audio' , 'Albums' , album];
+	media.title = track + title;
+	addCdsObject(media,createContainerChain(chain)); # UPNP_CLASS_CONTAINER_MUSIC_ALBUM
+	
+	chain = ['Audio' , 'Genres' , genre];
+	addCdsObject(media,createContainerChain(chain)); # UPNP_CLASS_CONTAINER_MUSIC_GENRE
+	
+	chain = ['Audio' , 'Year' , date];
+	addCdsObject(media,createContainerChain(chain));
 
 if __name__ == '__main__':
     # grab the current media
