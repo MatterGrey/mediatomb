@@ -23,3 +23,4 @@ tombupnp/build/.deps/
 tombupnp/upnp/inc/stamp-h2
 tombupnp/upnp/inc/upnpconfig.h
 webnew/images/default/grid/Thumbs.db
+.DS_Store
