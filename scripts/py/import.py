@@ -1,14 +1,18 @@
+
+import mediatomb
 import re
+
+def getYear(date):
+	return ()
+
 def escapeSlash(name):
 
     name = re.sub( r'\\',   r'\\\\', name );
     name = re.sub( r'/\//', r'\\/',  name );
     return name;
 
-
 def createContainerChain(arr):
     return '/' + '/'.join([ escapeSlash(x)  for x in arr ]) 
-
 
 def getPlaylistType(mimetype):
     if mimetype == 'audio/x-mpegurl':
@@ -17,28 +21,138 @@ def getPlaylistType(mimetype):
         return 'pls';
     return None;
 
+def getRootPath(rootpath,location):
+    return (media.location);
+
 def addVideo(media):
 
     chain =  ['Video', 'All Video'];
     mediatomb.log("Chain : %s" % createContainerChain(chain) )   
     mediatomb.addCdsObject(media, createContainerChain(chain) );
 
-    mediatomb.addCdsObject(media, "" );
-    mediatomb.addCdsObject(media, None );
+ #   mediatomb.addCdsObject(media, "" );
+ #   mediatomb.addCdsObject(media, None );
+    Dir = getRootPath('',media.location);
     
+    if (len(Dir) > 0):
+        chain = ('Video', 'Directories');
+        #chain = chain.concat(dir);
+
+        mediatomb.addCdsObject(media, createContainerChain(chain));
+       
+	return ();
+	
+def addAudio(media):
+	#Gather Information
+	"""	
+	Keys ['upnp:originalTrackNumber', 'dc:title', 'upnp:artist', 'dc:date', 'upnp:genre', 'upnp:album', 'dc:description']
+	"""
+	
+	desc = ''; 
+	artist_full = '';
+	album_full = '' ; 
+	
+	if  not (media.meta['dc:title']) : 
+		print "no Title";
+		title = media.title;
+	else:
+		title = media.meta['dc:title'];
+	
+	if not (media.meta['upnp:artist']):
+		artist = "unknow";
+		artist_full = None;
+	else:
+		artist = media.meta['upnp:artist']
+		artist_full = artist;
+		desc = artist;
+	
+	if not (media.meta['upnp:album']):
+		album = 'UnKnown';
+		album_full = None;
+	else:
+		album = media.meta['upnp:album'];
+		desc = desc + album;
+		album_full = album;
+	if desc:
+		desc = desc + ',';
+		desc = desc + title;
+		mediatomb.log("Description: %s " % desc);
+	
+	if not media.meta['dc:date']:
+		date = 'unknow';
+	else:
+		date = getYear(media.meta['dc:date']);
+		desc = desc + ', ' + str(date);
+	if not media.meta['upnp:genre']:
+		genre = "UnKnown";
+	else:
+		genre = media.meta['upnp:genre'];
+		desc = desc + ', ' + genre;
+		
+	if not media.meta['dc:description']:
+		media.meta['dc:description'] = desc;
+		
+	"""
+				
+	"""
 """
-    var dir = getRootPath(object_root_path, obj.location);
-
-    if (dir.length > 0)
-    {
-        chain = new Array('Video', 'Directories');
-        chain = chain.concat(dir);
-
-        addCdsObject(obj, createContainerChain(chain));
-    }
+	track = media.meta['upnp:originalTrackNumber'];
+	if track == '':
+		track = '';   # TODO
+	else:
+	track='00';
+	if (len(track) == 1)
+                track = '0' + track;
+			track = track + ' ';
+	"""
+	#track = '' ;
+	#chain = arry('Audio,All,Audio');
+	
 """
+function addAudio(obj)
+{
+       
+*/
+    // comment the following line out if you uncomment the stuff above  :)
+    var track = '';
 
-
+    var chain = new Array('Audio', 'All Audio');
+    obj.title = title;
+    addCdsObject(obj, createContainerChain(chain));
+    
+    chain = new Array('Audio', 'Artists', artist, 'All Songs');
+    addCdsObject(obj, createContainerChain(chain));
+    
+    chain = new Array('Audio', 'All - full name');
+    var temp = '';
+    if (artist_full)
+        temp = artist_full;
+    
+    if (album_full)
+        temp = temp + ' - ' + album_full + ' - ';
+    else
+        temp = temp + ' - ';
+   
+    obj.title = temp + title;
+    addCdsObject(obj, createContainerChain(chain));
+    
+    chain = new Array('Audio', 'Artists', artist, 'All - full name');
+    addCdsObject(obj, createContainerChain(chain));
+    
+    chain = new Array('Audio', 'Artists', artist, album);
+    obj.title = track + title;
+    addCdsObject(obj, createContainerChain(chain), UPNP_CLASS_CONTAINER_MUSIC_ALBUM);
+    
+    chain = new Array('Audio', 'Albums', album);
+    obj.title = track + title; 
+    addCdsObject(obj, createContainerChain(chain), UPNP_CLASS_CONTAINER_MUSIC_ALBUM);
+    
+    chain = new Array('Audio', 'Genres', genre);
+    addCdsObject(obj, createContainerChain(chain), UPNP_CLASS_CONTAINER_MUSIC_GENRE);
+    
+    chain = new Array('Audio', 'Year', date);
+    addCdsObject(obj, createContainerChain(chain));
+}"""
 
 if __name__ == '__main__':
     # grab the current media
@@ -51,7 +165,8 @@ if __name__ == '__main__':
 
         ## media.refID = media.id
         if mime == 'audio':
-            mediatomb.log("audio: ignoring (%s)" % media.title )
+            mediatomb.log("I Haz Auddio : (%s)" % media.title)
+            addAudio(media)
             
         if mime == 'image':
             mediatomb.log("image: ignoring (%s)" % media.title )
