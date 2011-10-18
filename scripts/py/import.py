@@ -1,55 +1,19 @@
 
-import pprint
-from time import time, ctime
-print "Ya Dawg, I heard you like bases?"
-
 import mediatomb
-mediatomb.log( "I'm running PYTHON! (%s)" % ctime(time()))
-
-'''
-mediatomb.log( "mediatomb is in the house")
-
-for k in dir(mediatomb):
-    print "%20s -> %s" % (k, getattr(mediatomb,k))
-
-mediatomb.log( "stweeie said 'media'")
-media = mediatomb.MediaTomb()
-
-#media.meta['kittens']  = 'foo'
-
-for k in dir(media):
-    print "%20s -> " % (k),
-    pprint.pprint( getattr(media,k) )
-
-mediatomb.log("bye")
-'''
-
-#print media
-
-# mediatomb.log( "path:%s , location:%s" % (media.path(), media.location()) )
-
-#mediatomb.log( "foo %s " % media.path )
-#media.path = "kittens!"
-
-#mediatomb.log( "foo %s " % media.path )
-# mediatomb.log( "path:%s , location:%s" % (media.path, media.location) )
-
-
-#mediatomb.log("bye")
-# get the current object
-# switch on mime
-
 import re
+
+def getYear(date):
+	# place holder 
+	return (date[:4])
+
 def escapeSlash(name):
 
     name = re.sub( r'\\',   r'\\\\', name );
     name = re.sub( r'/\//', r'\\/',  name );
     return name;
 
-
 def createContainerChain(arr):
     return '/' + '/'.join([ escapeSlash(x)  for x in arr ]) 
-
 
 def getPlaylistType(mimetype):
     if mimetype == 'audio/x-mpegurl':
@@ -58,28 +22,126 @@ def getPlaylistType(mimetype):
         return 'pls';
     return None;
 
+def getRootPath(rootpath,location):
+    return (media.location);
+
 def addVideo(media):
 
     chain =  ['Video', 'All Video'];
     mediatomb.log("Chain : %s" % createContainerChain(chain) )   
     mediatomb.addCdsObject(media, createContainerChain(chain) );
 
-    mediatomb.addCdsObject(media, "" );
-    mediatomb.addCdsObject(media, None );
+ #   mediatomb.addCdsObject(media, "" );
+ #   mediatomb.addCdsObject(media, None );
+    Dir = getRootPath('',media.location);
     
-"""
-    var dir = getRootPath(object_root_path, obj.location);
+    if (len(Dir) > 0):
+        chain = ('Video', 'Directories');
+        #chain = chain.concat(dir);
 
-    if (dir.length > 0)
-    {
-        chain = new Array('Video', 'Directories');
-        chain = chain.concat(dir);
-
-        addCdsObject(obj, createContainerChain(chain));
-    }
-"""
-
-
+        mediatomb.addCdsObject(media, createContainerChain(chain));
+       
+	return ();
+	
+def addAudio(media):
+	#Gather Information
+	desc = ''; 
+	artist_full = '';
+	album_full = '' ; 
+	
+	if  not (media.meta['dc:title']) : 
+		print "no Title";
+		title = media.title;
+	else:
+		title = media.meta['dc:title'];
+	
+	if not (media.meta['upnp:artist']):
+		artist = "unknow";
+		artist_full = None;
+	else:
+		artist = media.meta['upnp:artist']
+		artist_full = artist;
+		desc = artist;
+	
+	if not (media.meta['upnp:album']):
+		album = 'UnKnown';
+		album_full = None;
+	else:
+		album = media.meta['upnp:album'];
+		desc = desc + album;
+		album_full = album;
+	if desc:
+		desc = desc + ',';
+		desc = desc + title;
+		
+	if not media.meta['dc:date']:
+		date = 'unknow';
+	else:
+		date = getYear(media.meta['dc:date']);
+		desc = desc + ', ' + str(date);
+	if not media.meta['upnp:genre']:
+		genre = "UnKnown";
+	else:
+		genre = media.meta['upnp:genre'];
+		desc = desc + ', ' + genre;
+		
+	if not media.meta['dc:description']:
+		media.meta['dc:description'] = desc;
+	
+	mediatomb.log("Description: %s " % desc);
+	## Start to add media
+	
+	""" Add track to album view , TODO rewrite this horrible bit of code 
+	track = media.meta['upnp:originalTrackNumber'];
+	if track == '':
+		track = '';   # TODO
+	else:
+	track='00';
+	if (len(track) == 1)
+                track = '0' + track;
+			track = track + ' ';
+	"""
+	"""
+    chain =  ['Video', 'All Video'];
+    mediatomb.log("Chain : %s" % createContainerChain(chain) )   
+    mediatomb.addCdsObject(media, createContainerChain(chain) );
+    """
+	addCdsObject = mediatomb.addCdsObject;
+	track = '' ;   # part of above todo
+	chain = ['Audio,All,Audio'];
+	media.title = title; ## why
+	addCdsObject(media,createContainerChain(chain));	
+	
+	chain = ['Audio','Artists',artist,'All Songs'];
+	addCdsObject(media,createContainerChain(chain));	
+	
+	chain = ['Audio','All - full name'];
+	if (artist_full):
+		temp = artist_full;
+	if (album_full):
+		temp = temp + ' - ' + album_full + ' - ';
+	else:
+		temp = temp +' - ';
+	media.title= temp + title;
+	addCdsObject(media,createContainerChain(chain));
+	
+	chain = ['Audio' ,'Artists' , artist , 'All - full name'];
+	addCdsObject(media,createContainerChain(chain));
+	
+	chain = ['Audio' , 'Artists' , artist , album];
+	addCdsObject(media,createContainerChain(chain)); 
+	media.title = track + title;
+	addCdsObject(media,createContainerChain(chain)); # UPNP_CLASS_CONTAINER_MUSIC ALBUM need to find out about this?
+	
+	chain = ['Audio' , 'Albums' , album];
+	media.title = track + title;
+	addCdsObject(media,createContainerChain(chain)); # UPNP_CLASS_CONTAINER_MUSIC_ALBUM
+	
+	chain = ['Audio' , 'Genres' , genre];
+	addCdsObject(media,createContainerChain(chain)); # UPNP_CLASS_CONTAINER_MUSIC_GENRE
+	
+	chain = ['Audio' , 'Year' , date];
+	addCdsObject(media,createContainerChain(chain));
 
 if __name__ == '__main__':
     # grab the current media
@@ -92,7 +154,8 @@ if __name__ == '__main__':
 
         ## media.refID = media.id
         if mime == 'audio':
-            mediatomb.log("audio: ignoring (%s)" % media.title )
+            mediatomb.log("I Haz Auddio : (%s)" % media.title)
+            addAudio(media)
             
         if mime == 'image':
             mediatomb.log("image: ignoring (%s)" % media.title )

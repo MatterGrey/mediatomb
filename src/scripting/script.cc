@@ -2042,3 +2042,4 @@ PyObject *Script::getObjectProperty(PyObject *obj, String name)
 
 
 #endif // HAVE_PYTHON
+

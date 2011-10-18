@@ -12,6 +12,7 @@ Makefile
 *.log
 *.spec
 *.a
+*.bak
 autoconfig.h
 build/.deps/
 build/mediatomb
