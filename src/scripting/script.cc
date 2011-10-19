@@ -1,5 +1,4 @@
 /*MT*
-    
     MediaTomb - http://www.mediatomb.cc/
     
     script.cc - this file is part of MediaTomb.
@@ -1171,9 +1170,6 @@ Ref<CdsObject> Script::getProcessedObject()
 
 #ifdef HAVE_PYTHON
 
-
-
-
 #include "script.h"
 #include "tools.h"
 #include "metadata_handler.h"
@@ -1193,33 +1189,39 @@ static PyObject* mediatomb_getfourtytwo(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", "42");
 }
 
+
 static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
 
         int argc = PyTuple_Size(args);
 
         register int count ;
-        int str_len = 1;        
-        char *str = (char *) malloc(str_len); // for the null terminator
+        int total_str_len = 1;        
+        char *str = (char *) malloc(total_str_len); // for the null terminator
         str[0] = '\0';
-        
+
         for (count = 0; count < argc; count++) {
                 PyObject* item = PyTuple_GetItem(args, count);
                 // if we can make in to a string then, well string it.
-                if(PyString_Check(item)){                        
+                if(PyString_Check(item)){ 
+                       
                         char * s = PyString_AsString(item);
-                        str_len  += strlen(s);
-                        str = (char*) realloc(str, str_len);
+                        int str_len = (strlen(s) );
+                        //log_py("[%d]:[%s]:[%d][%llx]\n",count,s,str_len,str);
+                        total_str_len += str_len ;
+                        str = (char*) realloc(str, (total_str_len +1)); // remember the null! 
                         strncat(str, s, str_len);
                 }else{
                         // maybe throw an WTFException  ?
                         log_py("I haz object that I's can't print \n");                        
                 }
         }
-        str[str_len] = '\0';
+        str[total_str_len] = '\0';
         log_py("%s\n",str);
+        free(str);
         Py_RETURN_NONE;
         
 }
+
 static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
         
         zmm::Ref<Runtime> runtime = Runtime::getInstance();
@@ -1235,25 +1237,24 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
 
         container = PyString_AsString(chain);
         if (0 == PyOS_stricmp(container,"")){
-            container = "undefined";
+            container = (char *) "undefined";
         }
         log_py("container [%s]\n",container);
         
         {
-
                 zmm::Ref<CdsObject> cds_obj;
-            zmm::Ref<ContentManager> cm = ContentManager::getInstance();
-            int pcd_id = INVALID_OBJECT_ID;
-            if (whoami == S_PLAYLIST){
-                log_py("do not care about play lists \n");
-            }
-            else{
-               log_py("beware here be dragons \n");
-                    // cds_obj = self->jsObject2cdsObject(js_cds_obj, orig_object);
-
-            }
-
-
+                zmm::Ref<ContentManager> cm = ContentManager::getInstance();
+                int pcd_id = INVALID_OBJECT_ID;
+                if (whoami == S_PLAYLIST){
+                        log_py("do not care about play lists \n");
+                }
+                else{
+                        log_py("beware here be dragons \n");
+                        // cds_obj = self->jsObject2cdsObject(js_cds_obj, orig_object);
+                        // cds_obj = pyObj2cdsObject(media)
+                }
+                
+                
         }
         Py_RETURN_NONE;
 }
@@ -1264,7 +1265,7 @@ static PyObject* mediatomb_copyObject(PyObject *self, PyObject *args) {
 
 
 static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
-        log_py("init me silly\n");
+        log_py("init me silly nancy!\n");
 
         zmm::Ref<Runtime> runtime = Runtime::getInstance();
         zmm::Ref<CdsObject> obj = runtime->getCdsObj();
@@ -1276,100 +1277,99 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         // setup whom we are : yeeeewwwww
         self->whoami = runtime->whoami ;
 
-		// ObjectType always exists
-		objectType = i = obj->getObjectType();
-		Py_INCREF(self->objectType);
-		self->objectType = PyInt_FromLong(i);
-		log_py("setting %13s: %d \n","objectType",i);
+        // ObjectType always exists
+        objectType = i = obj->getObjectType();
+        self->objectType = PyInt_FromLong(i);
+        Py_INCREF(self->objectType);
+        log_py("setting %13s: %d \n","objectType",i);
         
+
         i = obj->getID();
         if (i != INVALID_OBJECT_ID){
-				Py_INCREF(self->id);
-				self->id = PyInt_FromLong(i);
-				log_py("setting %13s: %d \n","id",i);
+                self->id = PyInt_FromLong(i);
+                Py_INCREF(self->id);
+                log_py("setting %13s: %d \n","id",i);
         }
        
 
         i = obj->getParentID();                
         if (i != INVALID_OBJECT_ID){
-				Py_INCREF(self->parentID);
-				self->parentID = PyInt_FromLong(i);
-				log_py("setting %13s: %d \n","parentID",i);
+                self->parentID = PyInt_FromLong(i);
+                Py_INCREF(self->parentID);
+                log_py("setting %13s: %d \n","parentID",i);
         }
         val = obj->getTitle();
         if (val != nil){
-                Py_INCREF(self->title);
                 self->title =  PyString_FromString(val.c_str());
+                Py_INCREF(self->title);
                 log_py("setting %13s: %s \n","title",val.c_str());
         }
         
         val = obj->getClass();
         if (val != nil){
-                Py_INCREF(self->upnpclass);
                 self->upnpclass =  PyString_FromString(val.c_str());
+                Py_INCREF(self->upnpclass);
                 log_py("setting %13s: %s \n","upnpclass",val.c_str());
         }
 
         val = obj->getLocation();
-        if (val != nil){                
-                Py_INCREF(self->location);
+        if (val != nil){               
                 self->location =  PyString_FromString(val.c_str());
+                Py_INCREF(self->location);
                 log_py("setting %13s: %s \n","location",val.c_str());
         }
 
-		//
-		
-		// TODO: boolean type
-		i = obj->isRestricted();
-		Py_INCREF(self->restricted);
-		self->restricted = PyBool_FromLong(i);
-		log_py("setting %13s: %d \n","restricted",i);
-
+        
+        i = obj->isRestricted();
+        self->restricted = PyBool_FromLong(i);
+        Py_INCREF(self->restricted);
+        log_py("setting %13s: %d \n","restricted",i);
+        
 
         i = obj->getFlag(OBJECT_FLAG_OGG_THEORA);
-		Py_INCREF(self->theora);
-		self->theora = PyBool_FromLong(i);
-		log_py("setting %13s: %d \n","theora",i);
+        self->theora = PyBool_FromLong(i);
+        Py_INCREF(self->theora);
+        log_py("setting %13s: %d \n","theora",i);
+        
 
 
-
-		i = 0 ; // if online service is not defined or if its not an online service it needs to be zero
+        i = 0 ; // if online service is not defined or if its not an online service it needs to be zero
 #ifdef ONLINE_SERVICES
-		if (obj->getFlag(OBJECT_FLAG_ONLINE_SERVICE)){
-				service_type_t service = (service_type_t)(obj->getAuxData(_(ONLINE_SERVICE_AUX_ID)).toInt());
-				i = (int)service;
-		}
+        if (obj->getFlag(OBJECT_FLAG_ONLINE_SERVICE)){
+                service_type_t service = (service_type_t)(obj->getAuxData(_(ONLINE_SERVICE_AUX_ID)).toInt());
+                i = (int)service;
+        }
 #endif			
-	Py_INCREF(self->onlineservice);
 	self->onlineservice = PyInt_FromLong(i);
+	Py_INCREF(self->onlineservice);
 	log_py("setting %13s: %d \n","onlineservice",i);
 
 
     // setting metadata
     {
         using namespace zmm;
-        // self->meta
-        /*
-        self->meta = PyDict_New();
-        int r  =0 ;
-        r = PyDict_SetItemString(self->meta,  "kitten", PyString_FromString("miew") );
-        log_py("setting %13s: %s -> %s (%d) \n","meta","kitten","miew",r );
-        */
         
         Ref<Dictionary> meta = obj->getMetadata();
         Ref<Array<DictionaryElement> > elements = meta->getElements();
         int len = elements->size();
         for (int i = 0; i < len; i++)
         {
-            Ref<DictionaryElement> el = elements->get(i);
-            //setProperty(meta_js, el->getKey(), PyString_FromString(el->getValue()) );
-            PyDict_SetItemString(self->meta,  el->getKey().c_str(), PyString_FromString(el->getValue().c_str()));
-            log_py("setting %13s: %s -> %s \n","meta[]",el->getKey().c_str(),el->getValue().c_str() );
+                // py reference count comes set to 1, so no need to increase.
+                Ref<DictionaryElement> el = elements->get(i);
+                PyDict_SetItemString(self->meta,  
+                                     el->getKey().c_str(), PyString_FromString(el->getValue().c_str()));
+                log_py("setting %13s: %s -> %s \n","meta[]",el->getKey().c_str(),el->getValue().c_str() );
             
         }
 
-        //if (RefCast(obj, CdsItem)->getTrackNumber() > 0)
-        //    setProperty(meta_js, MetadataHandler::getMetaFieldName(M_TRACKNUMBER), String::from(RefCast(obj, CdsItem)->getTrackNumber())); 
+        if (RefCast(obj, CdsItem)->getTrackNumber() > 0){
+                //    setProperty(meta_js, MetadataHandler::getMetaFieldName(M_TRACKNUMBER), String::from(RefCast(obj, CdsItem)->getTrackNumber())); 
+                val  = String::from(RefCast(obj, CdsItem)->getTrackNumber());
+                PyDict_SetItemString(self->meta,  
+                                     MetadataHandler::getMetaFieldName(M_TRACKNUMBER).c_str(),
+                                     PyString_FromString( val.c_str() ));
+
+        }
     }
     
     // setting auxdata
@@ -1539,16 +1539,16 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         Ref<CdsItem> item = RefCast(obj, CdsItem);
         val = item->getMimeType();
         if (val != nil){                
-                Py_INCREF(self->mimetype);
                 self->mimetype =  PyString_FromString(val.c_str());
+                Py_INCREF(self->mimetype);
                 log_py("setting %13s: %s \n","mimetype",val.c_str());
         }
             
 
         val = item->getServiceID();
         if (val != nil){                
-                Py_INCREF(self->serviceID);
                 self->serviceID =  PyString_FromString(val.c_str());
+                Py_INCREF(self->serviceID);
                 log_py("setting %13s: %s \n","serviceID",val.c_str());
         }
 
@@ -1557,14 +1557,14 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
             Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
             val = aitem->getAction();
             if (val != nil){                
-                    Py_INCREF(self->action);
                     self->action =  PyString_FromString(val.c_str());
+                    Py_INCREF(self->action);
                     log_py("setting %13s: %s \n","action",val.c_str());
             }
             val = aitem->getState();
             if (val != nil){                
-                    Py_INCREF(self->state);
                     self->state =  PyString_FromString(val.c_str());
+                    Py_INCREF(self->state);
                     log_py("setting %13s: %s \n","state",val.c_str());
             }
         }
@@ -1579,27 +1579,27 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         // TODO: boolean type, hide updateID
         i = cont->getUpdateID();
         if (i != INVALID_OBJECT_ID){
-				Py_INCREF(self->updateID);
-				self->id = PyInt_FromLong(i);
-				log_py("setting %13s: %d \n","updateID",i);
+                self->id = PyInt_FromLong(i);
+                Py_INCREF(self->updateID);
+                log_py("setting %13s: %d \n","updateID",i);
         }
 
         i = cont->isSearchable();
         if (i != INVALID_OBJECT_ID){
-				Py_INCREF(self->searchable);
-				self->id = PyInt_FromLong(i);
-				log_py("setting %13s: %d \n","searchable",i);
+                self->id = PyInt_FromLong(i);
+                Py_INCREF(self->searchable);
+                log_py("setting %13s: %d \n","searchable",i);
         }
         
     }
 
-		//
-		/* place holder */  
-		Py_INCREF(self->path);
-		self->path =  PyString_FromString("");
+    //
+    /* place holder */  
+    //self->path =  PyString_FromString("");
 
-        log_py("init that \n");
-        return 0;
+    
+    log_py("Completed mediatomb_Init.\n");
+    return 0;
 }
 
 
@@ -1646,129 +1646,48 @@ MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
         mediatomb_MediaTombObject *self;
         self = (mediatomb_MediaTombObject *)type->tp_alloc(type, 0);
-        
+
         if (self != NULL) {
+                self->objectType    = Py_None;
+                self->id            = Py_None;
+                self->parentID      = Py_None;
 
-                self->objectType = Py_None;
-                if (self->objectType == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }                
-                self->id = Py_None;
-                if (self->id == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-                self->parentID = Py_None;
-                if (self->parentID == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
+                self->title         = PyString_FromString("");
+                Py_INCREF(self->title);
+
+                self->upnpclass     = PyString_FromString("");
+                Py_INCREF(self->upnpclass);
+
+                self->location      = PyString_FromString("");
+                Py_INCREF(self->location);
+
+                self->restricted    = Py_None;
+                self->theora        = Py_None;
+                self->onlineservice = Py_None;
+
+                self->meta          = PyDict_New();
+                Py_INCREF(self->meta);
+
+                self->aux           = PyDict_New();
+                Py_INCREF(self->aux);
                 
-                self->title = PyString_FromString("");
-                if (self->title == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
+                self->mimetype      = PyString_FromString("");
+                Py_INCREF(self->mimetype);
+                
+                self->serviceID     = PyString_FromString("");
+                Py_INCREF(self->serviceID);
 
-                self->upnpclass = PyString_FromString("");
-                if (self->upnpclass == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-                self->location = PyString_FromString("");
-                if (self->location == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
+                self->action        = PyString_FromString("");
+                Py_INCREF(self->action);
 
-                self->restricted = Py_None;
-                if (self->restricted == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
+                self->state         = PyString_FromString("");
+                Py_INCREF(self->state);
 
-                self->theora = Py_None;
-                if (self->location == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-        
-				self->onlineservice = Py_None;
-                if (self->onlineservice == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
+                self->updateID      = Py_None;
+                self->searchable    = Py_None;
 
-				self->meta = PyDict_New();
-                if (self->meta == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-
-				self->aux = PyDict_New();
-                if (self->aux == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-
-                self->mimetype = PyString_FromString("");
-                if (self->mimetype == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-                self->serviceID = PyString_FromString("");
-                if (self->serviceID == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-                self->action = PyString_FromString("");
-                if (self->action == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-                self->state = PyString_FromString("");
-                if (self->state == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
-
-                self->updateID = Py_None;
-                 if (self->updateID == NULL)
-                 {
-                         Py_DECREF(self);
-                         return NULL;
-                 }
-                 self->searchable = Py_None;
-                  if (self->searchable == NULL)
-                  {
-                          Py_DECREF(self);
-                          return NULL;
-                  }
-
-
-
-                self->path = PyString_FromString("");
-                if (self->path == NULL)
-                {
-                        Py_DECREF(self);
-                        return NULL;
-                }
+                self->path          = PyString_FromString("");
+                Py_INCREF(self->path);
         }
   
  

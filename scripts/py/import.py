@@ -143,6 +143,13 @@ def addAudio(media):
 	chain = ['Audio' , 'Year' , date];
 	addCdsObject(media,createContainerChain(chain));
 
+
+def dumpMedia(media):
+    for key in dir(media):
+            #mediatomb.log("%20s -> %40s" % (key, "" ) )
+            mediatomb.log("%s -> %-s" % (key, getattr(media,key) ) )
+
+
 if __name__ == '__main__':
     # grab the current media
     media = mediatomb.MediaTomb()
@@ -167,6 +174,9 @@ if __name__ == '__main__':
             mediatomb.log("I haz viddeo : (%s)" % media.title )
             addVideo(media)
             
+        dumpMedia(media)
+
+    
 '''
 if (getPlaylistType(orig.mimetype) == '')
 {
