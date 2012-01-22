@@ -49,7 +49,6 @@ void log_close();
 #define log_error(format, ...) _log_error(format, ## __VA_ARGS__)
 #define log_js(format, ...) _log_js(format, ## __VA_ARGS__)
 #define log_py(format, ...) _log_py(format, ## __VA_ARGS__)
-#define log_pyr(format, ...) _log_py(format, ## __VA_ARGS__)
 
 #ifdef DEBUG_LOG_ENABLED
     #define log_debug(format, ...) _log_debug(format, __FILE__, __LINE__, __func__, ## __VA_ARGS__)
@@ -71,7 +70,6 @@ void log_close();
 #define log_error(format, ...)
 #define log_js(format, ...)
 #define log_py(format, ...)
-#define log_pyr(format, ...)
 #define log_debug(format, ...)
 #define print_backtrace()
 
@@ -83,7 +81,6 @@ void _log_warning(const char *format, ...);
 void _log_error(const char *format, ...);
 void _log_js(const char *format, ...);
 void _log_py(const char *format, ...);
-void _log_pyr(const char *format, ...);
 void _log_debug(const char *format, const char* file, int line, const char *function, ...);
 void _print_backtrace(FILE* file = LOG_FILE);
 

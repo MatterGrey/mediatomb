@@ -1,12 +1,3 @@
-MediaTomb - 
-v0.2.0
-       * libav has been updatd.
-          https://launchpadlibrarian.net/71985647/libav_0.7_support.patch
-
-
-
-
-
 MediaTomb - UPnP AV Mediaserver.
 v0.12.0
         * added video thumbnail generation using libffmpegthumbnailer

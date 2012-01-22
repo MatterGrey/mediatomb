@@ -5,15 +5,13 @@ case "$1" in
      py)
 			./build/mediatomb -D -c scripts/config.xml.test -a ~/Videos/
            ;;
-
 	 info)
 			./build/mediatomb --compile-info
 			;;
      *)
            echo "py run with Python Runtime"
            echo "js run with SpiderMonkey Runtime"
-           echo "Compile-Info" 
-           ./build/mediatomb --compile-info
+           echo "Compile-Info"
            exit
            ;;
 esac        

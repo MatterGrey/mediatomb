@@ -1,34 +1,23 @@
 Source: mediatomb
 Section: net
 Priority: optional
-Maintainer: Debian multimedia packages maintainers <pkg-multimedia-maintainers@lists.alioth.debian.org>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Debian multimedia packages maintainers <pkg-multimedia-maintainers@lists.alioth.debian.org>
 DM-Upload-Allowed: yes
 Uploaders: Andres Mejia <mcitadel@gmail.com>,
- Leonhard Wimmer <leo@mediatomb.cc>,
- Sven Mueller <sven@debian.org>
-Build-Depends: debhelper (>= 7.0.50~),
- libavformat-dev,
- libcurl4-gnutls-dev | libcurl3-gnutls-dev,
- libexif-dev,
- libexpat-dev,
- libffmpegthumbnailer-dev,
- libmagic-dev,
- libmozjs-dev,
- python-dev,
- libmysqlclient-dev,
- libsqlite3-dev,
- libtag1-dev,
- libz-dev
-Standards-Version: 3.9.1
+ Leonhard Wimmer <leo@mediatomb.cc>, Sven Mueller <sven@debian.org>
+Build-Depends: debhelper (>= 7.0.50~), libexpat-dev,
+ libcurl4-gnutls-dev | libcurl3-gnutls-dev, libavformat-dev, libexif-dev,
+ libtag1-dev, libmagic-dev, libmysqlclient-dev, libsqlite3-dev, libz-dev,
+ libffmpegthumbnailer-dev, libmozjs185-dev
+Standards-Version: 3.8.4
 Homepage: http://mediatomb.cc/
 Vcs-Browser: http://git.debian.org/?p=pkg-multimedia/mediatomb.git;a=summary
 Vcs-Git: git://git.debian.org/git/pkg-multimedia/mediatomb.git
 
 Package: mediatomb-common
 Architecture: any
-Depends: ${shlibs:Depends},
- ${misc:Depends},
- libjs-prototype, python
+Depends: ${shlibs:Depends}, ${misc:Depends}, libjs-prototype
 Description: UPnP MediaServer (base package)
  MediaTomb is an UPnP MediaServer with a nice web user interface, it allows you
  to stream your digital media through your home network and listen to/watch it
@@ -44,8 +33,7 @@ Description: UPnP MediaServer (base package)
 
 Package: mediatomb-daemon
 Architecture: all
-Depends: mediatomb-common (>= ${source:Version}),
- adduser (>= 3.34),
+Depends: mediatomb-common (>= ${source:Version}), adduser (>= 3.34),
  ${misc:Depends}
 Description: UPnP MediaServer (daemon package)
  MediaTomb is an UPnP MediaServer with a nice web user interface, it allows you
@@ -62,7 +50,7 @@ Description: UPnP MediaServer (daemon package)
 Package: mediatomb
 Architecture: all
 Depends: mediatomb-daemon (>= ${source:Version}),
- iceweasel | firefox | www-browser, ${misc:Depends}
+ iceweasel | firefox | abrowser | www-browser, ${misc:Depends}
 Description: UPnP MediaServer (main package)
  MediaTomb is an UPnP MediaServer with a nice web user interface, it allows you
  to stream your digital media through your home network and listen to/watch it

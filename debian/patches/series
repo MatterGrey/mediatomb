@@ -1,4 +1,5 @@
 debug-mode-fix.patch
 config_xml_comment.patch
 const_char_conversion.patch
-autoreconf_-fi.patch
+mediatomb-0.12.1-gcc46.patch
+libav_0.7_support.patch

@@ -25,6 +25,3 @@ tombupnp/upnp/inc/stamp-h2
 tombupnp/upnp/inc/upnpconfig.h
 webnew/images/default/grid/Thumbs.db
 .DS_Store
- build/mediatomb.js
-mediatomb.db
-mediatomb.html

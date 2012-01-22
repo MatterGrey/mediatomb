@@ -2,5 +2,5 @@ version=3
 # Here we watch for a release after 0.11.0
 opts=uversionmangle=s/\.(tar.*|tgz|zip|gz|bz2)$//i,dversionmangle=s/[-.+~]?(cvs|svn|git|snapshot|pre|hg)(.*)$//i,pasv \
 http://sf.net/mediatomb/mediatomb-?_?([\d+\.]+|\d+)\.(tar.*|tgz|zip|gz|bz2|) \
-    debian \
+    0.11.0 \
     uupdate

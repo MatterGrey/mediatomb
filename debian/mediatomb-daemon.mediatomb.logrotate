@@ -1,6 +1,6 @@
 "/var/log/mediatomb.log" {
-	weekly
-	rotate 12
+	monthly
+	rotate 5
 	missingok
 	postrotate
 		pkill -HUP mediatomb

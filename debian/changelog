@@ -1,26 +1,66 @@
-mediatomb (0.12.1-2) unstable; urgency=low
+mediatomb (0.12.1~crankcube1) oneiric; urgency=low
 
-  * Team upload.
-  * Upload to unstable.
-  * new upstream release explicitly adds -lz during build. (Closes: #614956)
-  * move user creation scripts from preinst to postinst to avoid
-    pre-dependency on adduser
-  
- -- Reinhard Tartler <siretart@tauware.de>  Thu, 24 Feb 2011 21:11:18 +0100
+  * libmoz185 support available
+  * python runtime support available
 
-mediatomb (0.12.1-1) experimental; urgency=low
+ -- Alex Sayle <alexs@alphacomplex.info>  Sun, 22 Jan 2012 20:22:01 +0000
 
-  * New upstream release. (Closes: #579316)
-  * Update patches that are to be applied, resolve changes from new
-    upstream source.
-  * Refresh all patches.
-  * Disable lastfm scrobbling support for now since lastfmlib is not in Debian.
-  * Update Standards-Version to 3.9.1.
-  * Update copyright file to include full text of various BSD licenses.
-  * Update watch file for new release.
-  * Rotate mediatomb log file weekly for 12 weeks. (Closes: #574685)
+mediatomb (0.12.1-0ubuntu2) oneiric; urgency=low
 
- -- Andres Mejia <mcitadel@gmail.com>  Sun, 12 Sep 2010 00:42:53 -0400
+  * Introduce Upstart support to fix start-on-boot failure (LP: #212441)
+  * Fix build gcc-4.6 build failure (missing correct header) (LP: #770964)
+  * Added libav 0.7 support (LP: #784431)
+
+ -- Daniel van Vugt <vanvugt@gmail.com>  Sun, 15 May 2011 23:09:43 +0800
+
+mediatomb (0.12.1-0ubuntu1) maverick; urgency=low
+
+  * New upstream release (LP: #553269)
+    + Drop patches applied upstream:
+      - drop debian/patches/service-id_fix.patch
+      - drop debian/patches/ffmpegthumbnailer-2.0.patch
+      - drop debian/patches/autoreconf_-fi.patch
+    + Refresh patch due to upstream changes
+      - update debian/patches/const_char_conversion.patch
+
+  * Merge from debian unstable.  Remaining changes:
+    - debian/control:
+      + Don't depend on libmozjs-dev
+      + Add OR depends on abrowser
+    - debian/rules: Disable js support
+    - fix LP: #569763 - mediatomb allows anyone to browse and export the whole 
+      filesystem
+
+ -- Micah Gersten <micahg@ubuntu.com>  Wed, 25 Aug 2010 17:07:03 -0500
+
+mediatomb (0.12.0~svn2018-6.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Disable user interface (Closes: #580120)
+
+ -- Alexander Reichle-Schmehl <tolimar@debian.org>  Fri, 16 Jul 2010 15:52:21 +0200
+
+mediatomb (0.12.0~svn2018-6ubuntu3) maverick; urgency=low
+
+  * No change rebuild for libavutil49 → libavutil50 transition 
+
+ -- Iain Lane <laney@ubuntu.com>  Sun, 11 Jul 2010 11:42:16 +0100
+
+mediatomb (0.12.0~svn2018-6ubuntu2) lucid; urgency=low
+
+  * debian/rules:
+    - Disable spidermonkey support (LP: #536643)
+  * debian/control:
+    - Don't build-depend on libmozjs-dev
+
+ -- Chris Coulson <chrisccoulson@ubuntu.com>  Wed, 14 Apr 2010 17:04:10 +0100
+
+mediatomb (0.12.0~svn2018-6ubuntu1) lucid; urgency=low
+
+  * Merge from debian unstable, Ubuntu remaining changes:
+    - Add OR depends on abrowser.
+
+ -- Lionel Le Folgoc <mrpouit@ubuntu.com>  Mon, 22 Feb 2010 20:16:31 +0100
 
 mediatomb (0.12.0~svn2018-6) unstable; urgency=low
 
@@ -60,6 +100,22 @@ mediatomb (0.12.0~svn2018-5) unstable; urgency=medium
 
  -- Andres Mejia <mcitadel@gmail.com>  Thu, 04 Feb 2010 08:57:05 -0500
 
+mediatomb (0.12.0~svn2018-4ubuntu2) lucid; urgency=low
+
+  * rebuild for ffmpeg versioned symbols
+
+ -- Reinhard Tartler <siretart@tauware.de>  Tue, 19 Jan 2010 21:29:50 +0100
+
+mediatomb (0.12.0~svn2018-4ubuntu1) karmic; urgency=low
+
+  * Merge from debian unstable, Ubuntu remaining changes:
+    - Add OR depends on abrowser.
+  * Add glibc-2.10_fix.patch patch to prevent FTBFS with glibc-2.10.
+  * debian/config.xml.dist: Allow playing the mkv files that haven't
+    "video/x-matroska" as mimetype (LP: #417533).
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Fri, 28 Aug 2009 11:06:18 +0200
+
 mediatomb (0.12.0~svn2018-4) unstable; urgency=low
 
   [ Andreas Henriksson ]
@@ -86,6 +142,14 @@ mediatomb (0.12.0~svn2018-4) unstable; urgency=low
 
  -- Andres Mejia <mcitadel@gmail.com>  Wed, 05 Aug 2009 23:50:50 -0400
 
+mediatomb (0.12.0~svn2018-3ubuntu1) karmic; urgency=low
+
+  * Merge from debian unstable, remaining changes:
+    - Packages that Depend/Recommend/Suggest firefox (meta-package) must
+      alternatively Depend/Recommend/Suggest abrowser.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Sun, 10 May 2009 23:17:08 +0200
+
 mediatomb (0.12.0~svn2018-3) unstable; urgency=low
 
   * Fix minor typo in mediatomb-transcode script.
@@ -101,6 +165,14 @@ mediatomb (0.12.0~svn2018-3) unstable; urgency=low
     warning.
 
  -- Andres Mejia <mcitadel@gmail.com>  Fri, 08 May 2009 20:10:24 -0400
+
+mediatomb (0.12.0~svn2018-2ubuntu1) karmic; urgency=low
+
+  * Merge from debian unstable, Ubuntu remaining changes:
+    - Packages that Depend/Recommend/Suggest firefox (meta-package) must
+      alternatively Depend/Recommend/Suggest abrowser (LP: ##272772).
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Tue, 28 Apr 2009 23:08:18 +0200
 
 mediatomb (0.12.0~svn2018-2) unstable; urgency=low
 
@@ -154,6 +226,21 @@ mediatomb (0.11.0-4) unstable; urgency=low
     warning.
 
  -- Andres Mejia <mcitadel@gmail.com>  Sun, 05 Apr 2009 16:47:06 -0400
+
+mediatomb (0.11.0-3ubuntu2) jaunty; urgency=low
+
+  * Added ffmpeg_headers_location.patch to fix ffmpeg headers location,
+    fixes FTBFS (LP: #311180).
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Thu, 08 Jan 2009 11:18:48 +0100
+
+mediatomb (0.11.0-3ubuntu1) intrepid; urgency=low
+
+  * fix LP: #272772: packages that Depend/Recommend/Suggest firefox
+    (meta-package) must alternatively Depend/Recommend/Suggest abrowser
+    - update debian/control
+
+ -- Fabien Tassin <fta@ubuntu.com>  Mon, 22 Sep 2008 03:04:05 +0200
 
 mediatomb (0.11.0-3) unstable; urgency=low
 
@@ -322,3 +409,4 @@ mediatomb (0.10.0.dfsg1-1) unstable; urgency=low
     + zlib1g-dev changed to libz-dev.
 
  -- Andres Mejia <mcitadel@gmail.com>  Sat, 02 Feb 2008 01:42:48 -0500
+

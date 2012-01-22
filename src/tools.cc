@@ -382,7 +382,7 @@ String url_escape(String str)
 
 String url_unescape(String str)
 {
-    char *data = const_cast<char *>(str.c_str());
+    char *data = str.c_str();
     int len = str.length();
     Ref<StringBuffer> buf(new StringBuffer(len));
 
@@ -400,13 +400,13 @@ String url_unescape(String str)
 
             const char *pos;
 
-            pos = strchr(const_cast<char *>(hex), chi);
+            pos = strchr(hex, chi);
             if (!pos)
                 hi = 0;
             else
                 hi = pos - hex;
 
-            pos = strchr(const_cast<char *>(hex), clo);
+            pos = strchr(hex, clo);
             if (!pos)
                 lo = 0;
             else

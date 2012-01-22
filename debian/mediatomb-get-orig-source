@@ -4,16 +4,18 @@
 # generate it into an orig source tarball for Debian.
 
 # Common variables used to ease maintenance of this script
-MEDIATOMB_TARBALL="mediatomb-0.12.1.tar.gz"
-MEDIATOMB_TARBALL_CHECKSUM="31163c34a7b9d1c9735181737cb31306f29f1f2a0335fb4f53ecccf8f62f11cd"
-MEDIATOMB_VERSION="0.12.1"
+MEDIATOMB_TARBALL="mediatomb-0.11.0.tar.gz"
+MEDIATOMB_TARBALL_CHECKSUM="661f08933830d920de21436fe122fb15"
+MEDIATOMB_VERSION="0.12.0~svn2018"
 
 USAGE="\n\
 This script is used to generate the orig tarball used in building\n\
 Debian packages for mediatomb-$MEDIATOMB_VERSION.\n\
 Usage: mediatomb-get-orig-source [OPTION]\n\
 \n\
- -h, --help                 Display this help message.\n"
+ -h, --help                 Display this help message.\n\
+ --make-old-tarball         Make old 0.11.0 tarball.\n\
+ --remove-upstream-tarball  Remove the upstream source tarball.\n"
 
 while [ "$#" -gt "0" ]
 do
@@ -22,16 +24,48 @@ do
             echo "${USAGE}"
             exit 1
             ;;
+        --make-old-tarball)
+            MAKE_OLD_TARBALL=1
+            shift
+            ;;
+        --remove-upstream-tarball)
+            REMOVE_UPSTREAM_TARBALL=1
+            shift
+            ;;
     esac
 done
 
 make_current_tarball() {
+    # Remove old svn checkout
+    rm -rf mediatomb-$MEDIATOMB_VERSION
+
+    # Checkout original source from svn
+    svn co -r2018 https://mediatomb.svn.sourceforge.net/svnroot/mediatomb/trunk/mediatomb mediatomb-$MEDIATOMB_VERSION
+
+    # Remove .svn directories
+    for SVN_DIR in `find mediatomb-$MEDIATOMB_VERSION -type d -name .svn`; do
+        rm -rf $SVN_DIR
+    done
+
+    # Create configure_aux directory in top source directory
+    mkdir mediatomb-$MEDIATOMB_VERSION/configure_aux
+    echo "Dummy file so configure_aux shows up in svn. Ignore this file." \
+        >mediatomb-$MEDIATOMB_VERSION/configure_aux/.ignoreme
+
+    # Create the tarball
+    echo -n "Creating tarball..."
+    tar -czf mediatomb_$MEDIATOMB_VERSION.orig.tar.gz \
+        mediatomb-$MEDIATOMB_VERSION/
+    echo "done."
+}
+
+make_old_tarball() {
     # Download the tarball if it's not available in the current directory
     [ -f $MEDIATOMB_TARBALL ] || \
-        wget -c http://downloads.sourceforge.net/mediatomb/$MEDIATOMB_TARBALL
+        wget http://downloads.sourceforge.net/mediatomb/$MEDIATOMB_TARBALL
 
     # Verify the checksum
-    COMPUTED_CHECKSUM=`sha256sum $MEDIATOMB_TARBALL | cut -d ' ' -f 1`
+    COMPUTED_CHECKSUM=`md5sum $MEDIATOMB_TARBALL | cut -d ' ' -f 1`
     if [ $MEDIATOMB_TARBALL_CHECKSUM != $COMPUTED_CHECKSUM ] ; then
         echo "Checksum verification failed. Checksum was $COMPUTED_CHECKSUM
     Expected checksum $MEDIATOMB_TARBALL_CHECKSUM."
@@ -40,7 +74,16 @@ make_current_tarball() {
         echo "Checksum verified. Checksum is $COMPUTED_CHECKSUM."
     fi
 
-    mv $MEDIATOMB_TARBALL mediatomb_$MEDIATOMB_VERSION.orig.tar.gz
+    echo -n "Copying tarball..."
+    cp $MEDIATOMB_TARBALL mediatomb_0.11.0.orig.tar.gz
+    echo "done."
+    if [ $REMOVE_UPSTREAM_TARBALL ]; then
+            echo -n "Removing upstream tarball..."
+            rm $MEDIATOMB_TARBALL
+            echo "done."
+    fi
+    exit 0
 }
 
+[ $MAKE_OLD_TARBALL ] && make_old_tarball
 make_current_tarball

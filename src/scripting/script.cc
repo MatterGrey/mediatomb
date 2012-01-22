@@ -1186,6 +1186,12 @@ extern "C" {
 #include <Python.h>
 #include "structmember.h"
 
+// Dummy function that returns 42.
+static PyObject* mediatomb_getfourtytwo(PyObject *self, PyObject *args) {
+        return Py_BuildValue("s", "42");
+}
+
+
 static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
 
         int argc = PyTuple_Size(args);
@@ -1212,7 +1218,7 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
                 }
         }
         str[total_str_len] = '\0';
-        log_pyr("%s\n",str);
+        log_py("%s\n",str);
         free(str);
         Py_RETURN_NONE;
         
@@ -1273,7 +1279,7 @@ PyObject * getDictAttribute(PyObject * obj, const char * attribute){
 static zmm::Ref<CdsObject> pyObject2cdsObject(PyObject * media,   zmm::Ref<CdsObject> pcd){
 	//zmm::Ref<CdsObject> cds_obj;
 
-	//log_py("PYO2CDS: GOGOGO \n");
+	log_py("PYO2CDS: GOGOGO \n");
 
 
 	int objectType ;	
@@ -1283,7 +1289,7 @@ static zmm::Ref<CdsObject> pyObject2cdsObject(PyObject * media,   zmm::Ref<CdsOb
         log_error("missing objectType property\n");
         return nil;
     }
-	//log_py("PYO2CDS:object type is : %d \n", objectType);
+	log_py("PYO2CDS:object type is : %d \n", objectType);
 
     zmm::Ref<CdsObject> obj = CdsObject::createObject(objectType);
     objectType = obj->getObjectType(); // this is important, because the
@@ -1538,6 +1544,7 @@ Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
             cont->setSearchable(b);
     }
 
+	log_py("PYO2CDS: Gone Like the Wind \n");
 
 	 return obj;
 }
@@ -1549,7 +1556,7 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
         PyObject* media ;
         PyObject* chain ;
         zmm::String path;
-		zmm::String containerclass = nil; //_("undefined"); // should be used for something
+		zmm::String containerclass = _("undefined"); // should be used for something
 
         int r =  PyArg_ParseTuple(args,"OS" , &media , &chain);
         
@@ -1561,18 +1568,18 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
         if (0 == PyOS_stricmp(path.c_str(),"")){
             path = _("/");
         }
-        //log_py("path[%s] ctainerclass[%s]\n",path.c_str(),containerclass.c_str()) ;		
+        log_py("ACO: path [%s]\n",path.c_str());
+        
         {
-			// C++ 
                 zmm::Ref<CdsObject> media_cds_obj;
                 zmm::Ref<ContentManager> cm = ContentManager::getInstance();
                 int pcd_id = INVALID_OBJECT_ID;
                 if (whoami == S_PLAYLIST){
-                        //log_py("ACO: do not care about play lists \n");
+                        log_py("ACO: do not care about play lists \n");
 						return Py_True;
                 }
                 
-                //log_py("ACO: beware here be dragons \n");
+                log_py("ACO: beware here be dragons \n");
 				// this is lacking the chain
 				media_cds_obj = pyObject2cdsObject(media, runtime->getProcessedObject());
 				if (media_cds_obj == nil){
@@ -1581,7 +1588,7 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
 								
 				if (whoami == S_PLAYLIST){
 					
-                    //log_py("ACO: do not care about play lists \n");
+                    log_py("ACO: do not care about play lists \n");
 					return Py_True;
 					
 					/*
@@ -1622,7 +1629,7 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
 		            (ConfigManager::getInstance()->
 		             getBoolOption(CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT_LINK_OBJECTS)))
 		        {
-					 //log_py("ACO: Still do not care about play lists \n");
+					 log_py("ACO: Still do not care about play lists \n");
 					/*
 		            path = p2i->convert(path);
 		            id = cm->addContainerChain(path, containerclass, 
@@ -1637,17 +1644,17 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
 		                //path = i2i->convert(path);
 					}
             
-					//log_py("ACO: adding container chain (path = %s, containerclass = %s)\n",path.c_str(), containerclass.c_str());
+					log_py("ACO: adding container chain (path = %s, containerclass = %s)\n",path.c_str(), containerclass.c_str());
 		            id = cm->addContainerChain(path, containerclass);
 		        }
 				
-				//log_py("ACO: Setting parent ID to %d\n", id);
+				log_py("ACO: Setting parent ID to %d\n", id);
 		        media_cds_obj->setParentID(id);
 
 		        if (!IS_CDS_ITEM_EXTERNAL_URL(media_cds_obj->getObjectType()) &&
 		            !IS_CDS_ITEM_INTERNAL_URL(media_cds_obj->getObjectType()))
 		        {
-					//log_py("ACO: something abour RefIDs\n");
+					log_py("something abour RefIDs\n");
 		            /// \todo get hidden file setting from config manager?
 		            /// what about same stuff in content manager, why is it not used
 		            /// there?
@@ -1688,7 +1695,7 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
 		        }
 				
 		        media_cds_obj->setID(INVALID_OBJECT_ID);
-				//log_py("ACO: cm, adding Obj\n");
+				log_py("ACO: cm, adding Obj\n");
 		        cm->addObject(media_cds_obj);
 				
 				 /* setting object ID as return value */
@@ -1706,6 +1713,7 @@ static PyObject* mediatomb_copyObject(PyObject *self, PyObject *args) {
 
 
 static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
+        log_py("init me silly nancy!\n");
 
         zmm::Ref<Runtime> runtime = Runtime::getInstance();
         zmm::Ref<CdsObject> obj = runtime->getCdsObj();
@@ -1721,14 +1729,14 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         objectType = i = obj->getObjectType();
         self->objectType = PyInt_FromLong(i);
         Py_INCREF(self->objectType);
-        //log_py("setting %13s: %d \n","objectType",i);
+        log_py("setting %13s: %d \n","objectType",i);
         
 
         i = obj->getID();
         if (i != INVALID_OBJECT_ID){
                 self->id = PyInt_FromLong(i);
                 Py_INCREF(self->id);
-                //log_py("setting %13s: %d \n","id",i);
+                log_py("setting %13s: %d \n","id",i);
         }
        
 
@@ -1736,40 +1744,40 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         if (i != INVALID_OBJECT_ID){
                 self->parentID = PyInt_FromLong(i);
                 Py_INCREF(self->parentID);
-                //log_py("setting %13s: %d \n","parentID",i);
+                log_py("setting %13s: %d \n","parentID",i);
         }
         val = obj->getTitle();
         if (val != nil){
                 self->title =  PyString_FromString(val.c_str());
                 Py_INCREF(self->title);
-                //log_py("setting %13s: %s \n","title",val.c_str());
+                log_py("setting %13s: %s \n","title",val.c_str());
         }
         
         val = obj->getClass();
         if (val != nil){
                 self->upnpclass =  PyString_FromString(val.c_str());
                 Py_INCREF(self->upnpclass);
-                //log_py("setting %13s: %s \n","upnpclass",val.c_str());
+                log_py("setting %13s: %s \n","upnpclass",val.c_str());
         }
 
         val = obj->getLocation();
         if (val != nil){               
                 self->location =  PyString_FromString(val.c_str());
                 Py_INCREF(self->location);
-                //log_py("setting %13s: %s \n","location",val.c_str());
+                log_py("setting %13s: %s \n","location",val.c_str());
         }
 
         
         i = obj->isRestricted();
         self->restricted = PyBool_FromLong(i);
         Py_INCREF(self->restricted);
-        //log_py("setting %13s: %d \n","restricted",i);
+        log_py("setting %13s: %d \n","restricted",i);
         
 
         i = obj->getFlag(OBJECT_FLAG_OGG_THEORA);
         self->theora = PyBool_FromLong(i);
         Py_INCREF(self->theora);
-        //log_py("setting %13s: %d \n","theora",i);
+        log_py("setting %13s: %d \n","theora",i);
         
 
 
@@ -1782,7 +1790,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 #endif			
 	self->onlineservice = PyInt_FromLong(i);
 	Py_INCREF(self->onlineservice);
-	//log_py("setting %13s: %d \n","onlineservice",i);
+	log_py("setting %13s: %d \n","onlineservice",i);
 
 
     // setting metadata
@@ -1798,7 +1806,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
                 Ref<DictionaryElement> el = elements->get(i);
                 PyDict_SetItemString(self->meta,  
                                      el->getKey().c_str(), PyString_FromString(el->getValue().c_str()));
-                //log_py("setting %13s: %s -> %s \n","meta[]",el->getKey().c_str(),el->getValue().c_str() );
+                log_py("setting %13s: %s -> %s \n","meta[]",el->getKey().c_str(),el->getValue().c_str() );
             
         }
 
@@ -1964,7 +1972,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
             Ref<DictionaryElement> el = elements->get(i);
             //setProperty(aux_js, el->getKey(), el->getValue());
             PyDict_SetItemString(self->aux,  el->getKey().c_str(), PyString_FromString(el->getValue().c_str()));
-            //log_py("setting %13s: %s -> %s \n","aux[]",el->getKey().c_str(),el->getValue().c_str() );
+            log_py("setting %13s: %s -> %s \n","aux[]",el->getKey().c_str(),el->getValue().c_str() );
         }
 
     }
@@ -1981,7 +1989,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         if (val != nil){                
                 self->mimetype =  PyString_FromString(val.c_str());
                 Py_INCREF(self->mimetype);
-                //log_py("setting %13s: %s \n","mimetype",val.c_str());
+                log_py("setting %13s: %s \n","mimetype",val.c_str());
         }
             
 
@@ -1989,7 +1997,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         if (val != nil){                
                 self->serviceID =  PyString_FromString(val.c_str());
                 Py_INCREF(self->serviceID);
-                //log_py("setting %13s: %s \n","serviceID",val.c_str());
+                log_py("setting %13s: %s \n","serviceID",val.c_str());
         }
 
         if (IS_CDS_ACTIVE_ITEM(objectType))
@@ -1999,13 +2007,13 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
             if (val != nil){                
                     self->action =  PyString_FromString(val.c_str());
                     Py_INCREF(self->action);
-                    //log_py("setting %13s: %s \n","action",val.c_str());
+                    log_py("setting %13s: %s \n","action",val.c_str());
             }
             val = aitem->getState();
             if (val != nil){                
                     self->state =  PyString_FromString(val.c_str());
                     Py_INCREF(self->state);
-                    //log_py("setting %13s: %s \n","state",val.c_str());
+                    log_py("setting %13s: %s \n","state",val.c_str());
             }
         }
     }
@@ -2021,14 +2029,14 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
         if (i != INVALID_OBJECT_ID){
                 self->id = PyInt_FromLong(i);
                 Py_INCREF(self->updateID);
-                //log_py("setting %13s: %d \n","updateID",i);
+                log_py("setting %13s: %d \n","updateID",i);
         }
 
         i = cont->isSearchable();
         if (i != INVALID_OBJECT_ID){
                 self->id = PyInt_FromLong(i);
                 Py_INCREF(self->searchable);
-                //log_py("setting %13s: %d \n","searchable",i);
+                log_py("setting %13s: %d \n","searchable",i);
         }
         
     }
@@ -2038,7 +2046,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
     //self->path =  PyString_FromString("");
 
     
-    //lnaog_py("Completed mediatomb_Init.\n");
+    log_py("Completed mediatomb_Init.\n");
     return 0;
 }
 
@@ -2048,7 +2056,7 @@ static int mediatomb_init(mediatomb_MediaTombObject *self, PyObject *args) {
 static void
 MediaTomb_dealloc(mediatomb_MediaTombObject* self)
 {
-        //log_py("bye-bye memory\n");
+        log_py("bye-bye memory");
         Py_XDECREF(self->objectType);
         Py_XDECREF(self->id);
         Py_XDECREF(self->parentID);
@@ -2082,6 +2090,8 @@ MediaTomb_dealloc(mediatomb_MediaTombObject* self)
 static PyObject *
 MediaTomb_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
+        log_py("hello new world\n");
+
         mediatomb_MediaTombObject *self;
         self = (mediatomb_MediaTombObject *)type->tp_alloc(type, 0);
 
@@ -2206,10 +2216,10 @@ static PyMemberDef MediaTomb_Members[] = {
 static PyMethodDef MediaTomb_Methods[] = {
         //{"__init__", mediatomb_init,METH_NOARGS,"initialize mediatomb" },
         
-        //{"getfourtytwo" , mediatomb_getfourtytwo  , METH_NOARGS , "Return 42"},
+        {"getfourtytwo" , mediatomb_getfourtytwo  , METH_NOARGS , "Return 42"},
         {"log"          , mediatomb_log           , METH_VARARGS, "print to mediatomb's logger"  },
         {"addCdsObject" , mediatomb_addCdsObject  , METH_VARARGS, "Adds a virtual object to the server database"  },
-        //  {"copyObject"   , mediatomb_copyObject    , METH_VARARGS, "Returns a copy of the virtual object"  },
+        {"copyObject"   , mediatomb_copyObject    , METH_VARARGS, "Returns a copy of the virtual object"  },
 
 
         {NULL, NULL, 0, NULL}
@@ -2306,7 +2316,7 @@ Script::Script(Ref<Runtime> runtime) : Object()
 Script::~Script()
 {
 
-        //log_py("I's going to dine now\n");
+        log_py("I's going to dine now\n");
 
         Py_Finalize();
 }
@@ -2319,7 +2329,7 @@ void Script::load(zmm::String scriptPath)
   	 	script = _load((scriptPath));
         */
         
-        //log_py("Loading %s\n" ,scriptPath.c_str() );
+        log_py("Loading %s\n" ,scriptPath.c_str() );
         importScript = scriptPath ;
 }
 
@@ -2332,7 +2342,7 @@ void Script::setPyObj(Ref<CdsObject> obj)
 
 void Script::execute()
 {
-	//log_py("Executing python script : %s \n", importScript.c_str() );
+	log_py("Executing python script : %s \n", importScript.c_str() );
     PyObject* PyFileObject = PyFile_FromString((char *)importScript.c_str(), (char *)"r");
     PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)importScript.c_str());
         

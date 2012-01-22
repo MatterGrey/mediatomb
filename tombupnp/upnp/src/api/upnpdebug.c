@@ -62,10 +62,10 @@ static FILE *ErrFileHnd = NULL;
 static FILE *InfoFileHnd = NULL;
 
 //Name of the error file
-static const char *errFileName = NULL;
+static const char *errFileName = "IUpnpErrFile.txt";
 
 //Name of the info file
-static const char *infoFileName = NULL;
+static const char *infoFileName = "IUpnpInfoFile.txt";
 
 
 
@@ -113,8 +113,6 @@ UpnpInitLog(  )
     ithread_mutex_init( &GlobalDebugMutex, NULL );
 
     if( DEBUG_TARGET == 1 ) {
-        errFileName = tempnam(NULL,NULL);
-        infoFileName = tempnam(NULL,NULL);
         if( ( ErrFileHnd = fopen( errFileName, "a" ) ) == NULL )
             return -1;
         if( ( InfoFileHnd = fopen( infoFileName, "a" ) ) == NULL )

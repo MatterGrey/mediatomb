@@ -49,6 +49,7 @@ MEDIATOMB_CONFIG_OPTIONS ?= $(confflags) \
 			--prefix=/usr \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
+			--enable-scripting=javascript \
 			--enable-sqlite3 \
 			--enable-mysql \
 			--enable-libjs \
@@ -69,7 +70,6 @@ MEDIATOMB_CONFIG_OPTIONS ?= $(confflags) \
 			--disable-id3lib \
 			--disable-libmp4v2 \
 			--disable-libextractor \
-			--disable-lastfmlib \
 			$(MEDIATOMB_DEBUG_OPTIONS) \
 			CFLAGS="$(DEB_CFLAGS)" \
 			CXXFLAGS="$(DEB_CXXFLAGS)" \
@@ -102,8 +102,7 @@ override_dh_installchangelogs:
 	dh_installchangelogs ChangeLog
 
 override_dh_installinit:
-	dh_installinit --name=mediatomb \
-		--update-rcd-params='defaults 98 02'
+	dh_installinit --name=mediatomb 
 
 override_dh_installlogrotate:
 	dh_installlogrotate --name=mediatomb

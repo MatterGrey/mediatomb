@@ -140,17 +140,6 @@ void _log_py(const char *format, ...)
     va_end(ap);
 }
 
-void _log_pyr(const char *format, ...)
-{
-    va_list ap;
-    LOGCHECK
-    va_start(ap, format);
-    log_stamp("PYR");
-    vfprintf(LOG_FILE, format, ap);
-    FLUSHIT
-    va_end(ap);
-}
-
 
 void _log_debug(const char *format, const char *file, int line, const char *function, ...)
 {

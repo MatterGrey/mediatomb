@@ -1,0 +1,34 @@
+description "MediaTomb UPnP media server"
+author      "Daniel van Vugt <vanvugt in launchpad>"
+
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [!2345]
+respawn
+
+env CONFIGXML=/etc/mediatomb/config.xml
+env LOGFILE=/var/log/mediatomb.log
+env DEFAULT=/etc/default/mediatomb
+
+script
+	[ -r $DEFAULT ] && . $DEFAULT
+	[ ! $USER ] && USER=root
+	[ ! $GROUP ] && GROUP=$USER
+	if [ -n "$INTERFACE" ]; then
+		INTERFACE_ARG="-e $INTERFACE"
+		$ROUTE_ADD $INTERFACE
+	fi
+	exec mediatomb \
+		-c $CONFIGXML \
+		-u $USER \
+		-g $GROUP \
+		-l $LOGFILE \
+		$INTERFACE_ARG \
+		$OPTIONS
+end script
+
+post-stop script
+	[ -r $DEFAULT ] && . $DEFAULT
+	if [ -n "$INTERFACE" ]; then
+		$ROUTE_DEL $INTERFACE
+	fi
+end script

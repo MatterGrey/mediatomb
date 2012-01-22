@@ -1,7 +1,13 @@
 #!/bin/sh -e
 
-DATADIR=/var/lib/mediatomb
-
+if ! dpkg-statoverride --list /etc/mediatomb/config.xml >/dev/null 2>&1
+then
+	dpkg-statoverride --update --add mediatomb mediatomb 644 /etc/mediatomb/config.xml
+fi
+if ! dpkg-statoverride --list /var/lib/mediatomb >/dev/null 2>&1
+then
+	dpkg-statoverride --update --add mediatomb mediatomb 755 /var/lib/mediatomb
+fi
 
 # Copies database file from sqlite3.db to mediatomb.db
 mv_db() {
@@ -12,47 +18,6 @@ mv_db() {
 
 case "$1" in
 configure)
-    # stolen from mysql deb package...
-    
-    # If we use NIS then errors should be tolerated. It's up to the
-    # user to ensure that the mediatomb user is correctly setup.
-    # Beware that there are two ypwhich one of them needs the 2>/dev/null!
-    if test -n "`which ypwhich 2>/dev/null`"  &&  ypwhich >/dev/null 2>&1; then
-        set +e
-    fi
-
-    # creating mediatomb group if it isn't already there
-    if ! getent group mediatomb >/dev/null; then
-        # Adding system group: mediatomb.
-        addgroup --system mediatomb >/dev/null
-    fi
-    
-    # creating mediatomb user if it isn't already there
-    if ! getent passwd mediatomb >/dev/null; then
-        # Adding system user: mediatomb.
-        adduser \
-         --system \
-         --ingroup mediatomb \
-         --home $DATADIR \
-         --gecos "MediaTomb Server" \
-         --shell /usr/sbin/nologin \
-         --disabled-login \
-         --disabled-password \
-         mediatomb  >/dev/null
-    fi
-    
-    # end of NIS tolerance zone
-    set -e
-    
-    if ! dpkg-statoverride --list /etc/mediatomb/config.xml >/dev/null 2>&1
-    then
-    	dpkg-statoverride --update --add mediatomb mediatomb 644 /etc/mediatomb/config.xml
-    fi
-    if ! dpkg-statoverride --list /var/lib/mediatomb >/dev/null 2>&1
-    then
-    	dpkg-statoverride --update --add mediatomb mediatomb 755 /var/lib/mediatomb
-    fi
-
     # Force removal of previous scripts if upgrading from 0.11.0-3
     if [ -n "$2" ] && dpkg --compare-versions "$2" le "0.11.0-3"; then
         update-rc.d mediatomb remove >/dev/null || exit $?

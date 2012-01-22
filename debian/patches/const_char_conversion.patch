@@ -1,26 +1,19 @@
 Fix (const char *) conversion to (char *).
 ==========================================================================
---- a/src/tools.cc
-+++ b/src/tools.cc
-@@ -298,14 +298,14 @@
- 
- String hex_decode_string(String encoded)
- {
--    char *ptr = encoded.c_str();
-+    char *ptr = const_cast<char *>(encoded.c_str());
-     int len = encoded.length();
-     
-     Ref<StringBuffer> buf(new StringBuffer(len / 2));
-     for (int i = 0; i < len; i += 2)
-     {
--        const char *chi = strchr(HEX_CHARS, ptr[i]);
--        const char *clo = strchr(HEX_CHARS, ptr[i + 1]);
-+        const char *chi = strchr(const_cast<char *>(HEX_CHARS), ptr[i]);
-+        const char *clo = strchr(const_cast<char *>(HEX_CHARS), ptr[i + 1]);
-         int hi, lo;
-         
-         if (chi)
-@@ -382,7 +382,7 @@
+---
+ src/tools.cc |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: mediatomb-0.12.1/src/tools.cc
+===================================================================
+--- mediatomb-0.12.1.orig/src/tools.cc
++++ mediatomb-0.12.1/src/tools.cc
+@@ -377,17 +377,17 @@
+             *buf << '%' << hex[hi] << hex[lo];
+         }
+     }
+     return buf->toString();
+ }
  
  String url_unescape(String str)
  {
@@ -29,7 +22,17 @@ Fix (const char *) conversion to (char *).
      int len = str.length();
      Ref<StringBuffer> buf(new StringBuffer(len));
  
-@@ -400,13 +400,13 @@
+     int i = 0;
+     while (i < len)
+     {
+         char c = data[i++];
+         if (c == '%')
+@@ -395,23 +395,23 @@
+             if (i + 2 > len)
+                 break; // avoid buffer overrun
+             char chi = data[i++];
+             char clo = data[i++];
+             int hi, lo;
  
              const char *pos;
  
@@ -45,3 +48,8 @@ Fix (const char *) conversion to (char *).
              if (!pos)
                  lo = 0;
              else
+                 lo = pos - hex;
+ 
+             int ascii = (hi << 4) | lo;
+             *buf << (char)ascii;
+         }
