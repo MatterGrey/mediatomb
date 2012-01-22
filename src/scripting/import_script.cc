@@ -154,7 +154,7 @@ ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
 
     String scriptPath = ConfigManager::getInstance()->getOption(CFG_IMPORT_SCRIPTING_IMPORT_SCRIPT);
     
-    log_info("ImportScript::ImportScript(%s)\n", scriptPath.c_str());
+    //log_info("ImportScript::ImportScript(%s)\n", scriptPath.c_str());
     try 
     {
         load(scriptPath);
@@ -174,7 +174,7 @@ void ImportScript::processCdsObject(Ref<CdsObject> obj, String rootpath)
     try 
     {
         
-        log_info("ImportScript::processCdsObject(%s)\n", rootpath.c_str());
+        //log_info("ImportScript::processCdsObject(%s)\n", rootpath.c_str());
 		setPyObj(obj);
 /*
         JSObject *orig = JS_NewObject(cx, NULL, NULL, glob);

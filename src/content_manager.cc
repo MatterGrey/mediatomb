@@ -626,7 +626,7 @@ void ContentManager::addVirtualItem(Ref<CdsObject> obj, bool allow_fifo)
 
 int ContentManager::_addFile(String path, String rootpath, bool recursive, bool hidden, Ref<CMTask> task)
 {
-    log_info("1 ContentManager::_addFile(%s)\n",  path.c_str());
+    //log_info("1 ContentManager::_addFile(%s)\n",  path.c_str());
     if (hidden == false)
     {
         String filename = get_filename(path);
@@ -638,12 +638,12 @@ int ContentManager::_addFile(String path, String rootpath, bool recursive, bool 
     if (ConfigManager::getInstance()->getConfigFilename() == path)
         return INVALID_OBJECT_ID;
 
-    log_info("2 ContentManager::_addFile(%s)\n",  path.c_str());
+    //log_info("2 ContentManager::_addFile(%s)\n",  path.c_str());
 
     if (layout_enabled)
         initLayout();
 
-    log_info("3 ContentManager::_addFile(%s)\n",  path.c_str());
+    //log_info("3 ContentManager::_addFile(%s)\n",  path.c_str());
 
 #ifdef HAVE_JS
     initJS();
