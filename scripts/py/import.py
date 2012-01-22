@@ -1,6 +1,9 @@
 
 import mediatomb
 import re
+import os 
+import datetime
+
 
 def getYear(date):
 	# place holder 
@@ -27,22 +30,86 @@ def getRootPath(rootpath,location):
 
 def addVideo(media):
 
-    chain =  ['Video', 'All Video'];
-    mediatomb.log("Chain : %s" % createContainerChain(chain) )   
+    chain =  ('Video', 'All Video');
+    mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
     mediatomb.addCdsObject(media, createContainerChain(chain) );
 
- #   mediatomb.addCdsObject(media, "" );
- #   mediatomb.addCdsObject(media, None );
-    Dir = getRootPath('',media.location);
+    (head, tail) =  os.path.split(media.location);
+    parts = head.split('/')
     
-    if (len(Dir) > 0):
-        chain = ('Video', 'Directories');
-        #chain = chain.concat(dir);
+    chain = ['Video', 'Directories']
+    if (len(parts) > 3):        
+        chain = chain + parts[-3:]
+    elif (len(parts) > 2):        
+        chain = chain + parts[-2:]
+    elif (len(parts) > 1):        
+        chain = chain + parts[-1:]
+    else:
+        return ()
+    
+    mediatomb.log("Adding : /%s/%s"   % ( "/".join(chain), media.title) )
+    mediatomb.addCdsObject(media, createContainerChain(chain))
+    return ();
 
-        mediatomb.addCdsObject(media, createContainerChain(chain));
-       
-	return ();
-	
+def addVideoByDate(media):
+    
+    # grab some date referene. Ctime seems like a start.    
+    statinfo   = os.stat(media.location)
+    ctime      = datetime.datetime.fromtimestamp(statinfo.st_ctime)
+    
+    # Calculate how recent this date market was.
+    now        = datetime.datetime.now()
+    delta =  now - ctime
+    
+    #mediatomb.log("[%-40s] created %4d days ago"  % (media.title,delta.days) )
+    
+    # Most UPnP client sort using alphabet/numbers so give it some hints on 
+    # sortting.
+    ## Note that the following will add the same video to MULTIPLE locations.
+    
+    chain = ('Video', 'Added')
+    
+    # exactly 0, 1, or 2 days since creation. If it matches one of these 
+    # criteria the media will be added.
+    if delta.days == 0 :
+        chain = ('Video', 'Added', '00 Today' );
+        mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
+        mediatomb.addCdsObject(media, createContainerChain(chain));         
+
+    if delta.days == 1 :
+        chain = ('Video', 'Added', '01 Yesterday' );
+        mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
+        mediatomb.addCdsObject(media, createContainerChain(chain)); 
+
+    if delta.days == 2 :
+        chain = ('Video', 'Added', '02 Two Days Ago' );
+        mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
+        mediatomb.addCdsObject(media, createContainerChain(chain)); 
+
+    # one of "less than a wee" XOR "less than two weeks" XOR 
+    # "less than one month".
+    if delta.days <= 7 :
+        chain = ('Video', 'Added', '03 In the Last One Week' );
+        mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
+        mediatomb.addCdsObject(media, createContainerChain(chain)); 
+    
+    elif delta.days <= 14 :
+        chain = ('Video', 'Added', '04 In the Last Two Week' );
+        mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
+        mediatomb.addCdsObject(media, createContainerChain(chain)); 
+    
+    elif delta.days <= 30 :
+        chain = ('Video', 'Added', '05 In the Last Month' );
+        mediatomb.log("Adding : /%s/%s"  % ("/".join(chain), media.title) )
+        mediatomb.addCdsObject(media, createContainerChain(chain)); 
+    else:
+        # we don't want to polute the top level directory with all the videos,
+        # so we skip over the rest.
+        return ();
+    return ();
+
+
+
 def addAudio(media):
 	#Gather Information
 	desc = ''; 
@@ -147,7 +214,7 @@ def addAudio(media):
 def dumpMedia(media):
     for key in dir(media):
             #mediatomb.log("%20s -> %40s" % (key, "" ) )
-            mediatomb.log("%s -> %-s" % (key, getattr(media,key) ) )
+            mediatomb.log("%20s -> %-s" % (key, getattr(media,key) ) )
 
 
 if __name__ == '__main__':
@@ -157,7 +224,7 @@ if __name__ == '__main__':
     # can I haz video?
     if getPlaylistType( media.mimetype) is None:
         mime = media.mimetype.split('/')[0]
-        mediatomb.log("mimetype : %s" % mime )
+        #mediatomb.log("mimetype : %s" % mime )
 
         ## media.refID = media.id
         if mime == 'audio':
@@ -173,8 +240,9 @@ if __name__ == '__main__':
         if mime == 'video' or media.mimetype == 'application/ogg':
             mediatomb.log("I haz viddeo : (%s)" % media.title )
             addVideo(media)
+            addVideoByDate(media)
             
-        dumpMedia(media)
+        #dumpMedia(media)
 
     
 '''

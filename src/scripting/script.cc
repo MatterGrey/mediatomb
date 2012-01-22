@@ -1180,6 +1180,8 @@ Ref<CdsObject> Script::getProcessedObject()
     #include "online_service.h"
 #endif
 
+#include "py_functions.h"
+
 extern "C" {
 #include <Python.h>
 #include "structmember.h"
@@ -1222,12 +1224,339 @@ static PyObject* mediatomb_log(PyObject *self, PyObject *args) {
         
 }
 
+int getIntAttribute(PyObject * obj, const char * attribute, int def){
+	
+	if(! PyObject_HasAttrString(obj,attribute) )
+		return def ;
+			
+	PyObject * attr = PyObject_GetAttrString(obj,attribute) ;
+	if( attr == NULL ){
+		return def;
+	}
+	// the truncation is intetional. if the user is stupid enough to set one
+	// of the attributes outside an Int range then the user is a muppet.
+    return (int) PyInt_AS_LONG(attr);
+}
+
+
+int getBoolAttribute(PyObject * obj, const char * attribute ){
+
+	if(! PyObject_HasAttrString(obj,attribute) )
+		return false ;
+
+	PyObject * attr = PyObject_GetAttrString(obj,attribute);
+	return PyBool_Check(attr);
+
+
+}
+
+
+zmm::String getStrAttribute(PyObject * obj, const char * attribute){
+	
+	if(! PyObject_HasAttrString(obj,attribute) )
+		return _("");
+	
+	PyObject * attr = PyObject_GetAttrString(obj,attribute) ;
+	char * attr_str =  PyString_AsString(attr);
+	return zmm::String(attr_str, strlen(attr_str) +1 );
+	
+}
+
+PyObject * getDictAttribute(PyObject * obj, const char * attribute){
+	
+	if(! PyObject_HasAttrString(obj,attribute) )
+		return NULL;
+	
+	PyObject * attr = PyObject_GetAttrString(obj,attribute) ;
+	if( PyDict_Check(attr) ) 
+		return attr ;
+	else 
+		return NULL;
+}
+
+
+
+static zmm::Ref<CdsObject> pyObject2cdsObject(PyObject * media,   zmm::Ref<CdsObject> pcd){
+	//zmm::Ref<CdsObject> cds_obj;
+
+	log_py("PYO2CDS: GOGOGO \n");
+
+
+	int objectType ;	
+    objectType = getIntAttribute(media,"objectType",-1);
+    if (objectType == -1)
+    {
+        log_error("missing objectType property\n");
+        return nil;
+    }
+	log_py("PYO2CDS:object type is : %d \n", objectType);
+
+    zmm::Ref<CdsObject> obj = CdsObject::createObject(objectType);
+    objectType = obj->getObjectType(); // this is important, because the
+    // type will be changed appropriately
+    // by the create function
+
+    // CdsObject
+    obj->setVirtual(1); // PY creates only virtual objects
+
+	 
+/*	 
+Ref<CdsObject> Script::jsObject2cdsObject(JSObject *js, zmm::Ref<CdsObject> pcd)
+{
+    String val;
+    int objectType;
+    int b;
+    int i;
+    Ref<StringConverter> sc;
+
+    if (this->whoami() == S_PLAYLIST)
+    {
+        sc = StringConverter::p2i();
+    }
+    else
+        sc = StringConverter::i2i();
+
+    objectType = getIntProperty(js, _("objectType"), -1);
+    if (objectType == -1)
+    {
+        log_error("missing objectType property\n");
+        return nil;
+    }
+
+    Ref<CdsObject> obj = CdsObject::createObject(objectType);
+    objectType = obj->getObjectType(); // this is important, because the
+    // type will be changed appropriately
+    // by the create function
+
+    // CdsObject
+    obj->setVirtual(1); // JS creates only virtual objects
+*/
+	int i;
+	int b;
+	zmm::String val;
+	
+    i = getIntAttribute(media, "id", INVALID_OBJECT_ID);
+    if (i != INVALID_OBJECT_ID)
+        obj->setID(i);
+    i = getIntAttribute(media, "refID", INVALID_OBJECT_ID);
+    if (i != INVALID_OBJECT_ID)
+        obj->setRefID(i);
+    i = getIntAttribute(media, "parentID", INVALID_OBJECT_ID);
+    if (i != INVALID_OBJECT_ID)
+        obj->setParentID(i);
+
+    val = getStrAttribute(media, "title");
+    if (val != nil)
+    {
+        //val = sc->convert(val);
+        obj->setTitle(val);
+    }
+    else
+    {
+        if (pcd != nil)
+            obj->setTitle(pcd->getTitle());
+    }
+	
+    val = getStrAttribute(media, "upnpclass");
+    if (val != nil)
+    {
+        //val = sc->convert(val);
+        obj->setClass(val);
+    }
+    else
+    {
+        if (pcd != nil)
+            obj->setClass(pcd->getClass());
+    }
+	
+    b = getBoolAttribute(media, "restricted");
+    if (b >= 0)
+        obj->setRestricted(b);
+	
+	PyObject * meta = getDictAttribute(media,"meta");
+	if (meta)
+    {
+		PyObject * py_val ; 
+        /// \todo: only metadata enumerated in MT_KEYS is taken
+        for (int i = 0; i < M_MAX; i++)
+        {
+            py_val = PyDict_GetItemString(meta, MT_KEYS[i].upnp);
+            if (py_val != NULL)
+            {
+				char * str =  PyString_AsString(py_val);
+	            val =  zmm::String(str, strlen(str) +1 );
+
+                if (i == M_TRACKNUMBER)
+                {
+                    int j = (int) PyInt_AS_LONG(py_val);
+                    if (j > 0)
+                    {
+                        obj->setMetadata(MT_KEYS[i].upnp, val);
+                        RefCast(obj, CdsItem)->setTrackNumber(j);
+                    }
+                    else
+                        RefCast(obj, CdsItem)->setTrackNumber(0);
+                }
+                else
+                {
+                    //val = sc->convert(val);
+                    obj->setMetadata(MT_KEYS[i].upnp, val);
+                }
+            }
+        }
+    }
+    
+    // stuff that has not been exported to js
+    if (pcd != nil)
+    {
+        obj->setFlags(pcd->getFlags());
+        obj->setResources(pcd->getResources());
+        obj->setAuxData(pcd->getAuxData());
+    }
+
+    // CdsItem
+    if (IS_CDS_ITEM(objectType))
+    {
+        zmm::Ref<CdsItem> item = RefCast(obj, CdsItem);
+        zmm::Ref<CdsItem> pcd_item;
+
+        if (pcd != nil)
+            pcd_item = RefCast(pcd, CdsItem);
+
+        val = getStrAttribute(media, "mimetype");
+        if (val != nil)
+        {
+			//val = sc->convert(val);
+            item->setMimeType(val);
+        }
+        else
+        {
+            if (pcd != nil)
+                item->setMimeType(pcd_item->getMimeType());
+        }
+
+        val =  getStrAttribute(media, "serviceID");
+        if (val != nil)
+        {
+           // val = sc->convert(val);
+            item->setServiceID(val);
+        }
+
+        /// \todo check what this is doing here, wasn't it already handled
+        /// in the MT_KEYS loop?
+        val = getStrAttribute(media, "description");
+        if (val != nil)
+        {
+            //val = sc->convert(val);
+            item->setMetadata(MetadataHandler::getMetaFieldName(M_DESCRIPTION), val);
+        }
+        else
+        {
+            if (pcd != nil)
+                item->setMetadata(MetadataHandler::getMetaFieldName(M_DESCRIPTION),
+                    pcd_item->getMetadata(MetadataHandler::getMetaFieldName(M_DESCRIPTION)));
+        }
+		
+		zmm::Ref<Runtime> runtime = Runtime::getInstance();
+		int whoami = runtime->whoami;
+        if (whoami == S_PLAYLIST)
+        {
+            item->setTrackNumber(getIntAttribute(media,"playlistOrder", 0));
+        }
+	
+	    // location must not be touched by character conversion!
+        val = getStrAttribute(media, "location");
+        if ((val != nil) && (IS_CDS_PURE_ITEM(objectType) || IS_CDS_ACTIVE_ITEM(objectType)))
+            val = normalizePath(val);
+        
+        if (string_ok(val))
+            obj->setLocation(val);
+        else
+        {
+            if (pcd != nil)
+                obj->setLocation(pcd->getLocation());
+        }
+
+        if (IS_CDS_ACTIVE_ITEM(objectType))
+        {
+            zmm::Ref<CdsActiveItem> aitem = RefCast(obj, CdsActiveItem);
+            zmm::Ref<CdsActiveItem> pcd_aitem;
+            if (pcd != nil)
+                pcd_aitem = RefCast(pcd, CdsActiveItem);
+          /// \todo what about character conversion for action and state fields?
+            val = getStrAttribute(media, "action");
+            if (val != nil)
+                aitem->setAction(val);
+            else
+            {
+                if (pcd != nil)
+                    aitem->setAction(pcd_aitem->getAction());
+            }
+
+            val = getStrAttribute(media, "state");
+            if (val != nil)
+                aitem->setState(val);
+            else
+            {
+                if (pcd != nil)
+                    aitem->setState(pcd_aitem->getState());
+            }
+        }
+
+        if (IS_CDS_ITEM_EXTERNAL_URL(objectType))
+        {
+            zmm::String protocolInfo;
+
+            obj->setRestricted(true);
+            zmm::Ref<CdsItemExternalURL> item = RefCast(obj, CdsItemExternalURL);
+            val = getStrAttribute(media, "protocol");
+            if (val != nil)
+            {
+                //val = sc->convert(val);
+                protocolInfo = renderProtocolInfo(item->getMimeType(), val);
+            }
+            else
+            {
+                protocolInfo = renderProtocolInfo(item->getMimeType(), _(PROTOCOL));
+            }
+
+            if (item->getResourceCount() == 0)
+            {
+                zmm::Ref<CdsResource> resource(new CdsResource(CH_DEFAULT));
+                resource->addAttribute(MetadataHandler::getResAttrName(
+                            R_PROTOCOLINFO), protocolInfo);
+
+                item->addResource(resource);
+            }
+        }
+    }
+
+    // CdsDirectory
+    if (IS_CDS_CONTAINER(objectType))
+    {
+        zmm::Ref<CdsContainer> cont = RefCast(obj, CdsContainer);
+        i = getIntAttribute(media, "updateID", -1);
+        if (i >= 0)
+            cont->setUpdateID(i);
+
+        b = getBoolAttribute(media, "searchable");
+        if (b >= 0)
+            cont->setSearchable(b);
+    }
+
+	log_py("PYO2CDS: Gone Like the Wind \n");
+
+	 return obj;
+}
+
+
 static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
         
         zmm::Ref<Runtime> runtime = Runtime::getInstance();
         PyObject* media ;
         PyObject* chain ;
-        char * container;
+        zmm::String path;
+		zmm::String containerclass = _("undefined"); // should be used for something
 
         int r =  PyArg_ParseTuple(args,"OS" , &media , &chain);
         
@@ -1235,29 +1564,148 @@ static PyObject* mediatomb_addCdsObject(PyObject *self, PyObject *args) {
         int whoami = runtime->whoami;
         //log_py("whoami %d\n",whoami);
 
-        container = PyString_AsString(chain);
-        if (0 == PyOS_stricmp(container,"")){
-            container = (char *) "undefined";
+        path = PyString_AsString(chain);
+        if (0 == PyOS_stricmp(path.c_str(),"")){
+            path = _("/");
         }
-        log_py("container [%s]\n",container);
+        log_py("ACO: path [%s]\n",path.c_str());
         
         {
-                zmm::Ref<CdsObject> cds_obj;
+                zmm::Ref<CdsObject> media_cds_obj;
                 zmm::Ref<ContentManager> cm = ContentManager::getInstance();
                 int pcd_id = INVALID_OBJECT_ID;
                 if (whoami == S_PLAYLIST){
-                        log_py("do not care about play lists \n");
-                }
-                else{
-                        log_py("beware here be dragons \n");
-                        // cds_obj = self->jsObject2cdsObject(js_cds_obj, orig_object);
-                        // cds_obj = pyObj2cdsObject(media)
+                        log_py("ACO: do not care about play lists \n");
+						return Py_True;
                 }
                 
+                log_py("ACO: beware here be dragons \n");
+				// this is lacking the chain
+				media_cds_obj = pyObject2cdsObject(media, runtime->getProcessedObject());
+				if (media_cds_obj == nil){
+					return Py_True;
+				}
+								
+				if (whoami == S_PLAYLIST){
+					
+                    log_py("ACO: do not care about play lists \n");
+					return Py_True;
+					
+					/*
+		            int otype = self->getIntProperty(js_cds_obj, _("objectType"), -1);
+		            if (otype == -1)
+		            {
+		                log_error("missing objectType property\n");
+		                return JS_TRUE;
+		            }
+
+		            if (!IS_CDS_ITEM_EXTERNAL_URL(otype) &&
+		                !IS_CDS_ITEM_INTERNAL_URL(otype))
+		            { 
+		                String loc = self->getProperty(js_cds_obj, _("location"));
+		                if (string_ok(loc) && 
+		                   (IS_CDS_PURE_ITEM(otype) || IS_CDS_ACTIVE_ITEM(otype)))
+		                    loc = normalizePath(loc);
+
+		                pcd_id = cm->addFile(loc, false, false, true);
+		                if (pcd_id == INVALID_OBJECT_ID)
+		                    return JS_TRUE;
+
+		                Ref<CdsObject> mainObj = Storage::getInstance()->loadObject(pcd_id);
+		                cds_obj = self->jsObject2cdsObject(js_cds_obj, mainObj);
+		            }
+		            else
+		                cds_obj = self->jsObject2cdsObject(js_cds_obj, self->getProcessedObject());
+				
+					*/
+				}else{
+					/*
+					 cds_obj = self->jsObject2cdsObject(js_cds_obj, media_cds_obj);
+					 */
+				}
                 
+				int id;
+		        if (( whoami == S_PLAYLIST) &&
+		            (ConfigManager::getInstance()->
+		             getBoolOption(CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT_LINK_OBJECTS)))
+		        {
+					 log_py("ACO: Still do not care about play lists \n");
+					/*
+		            path = p2i->convert(path);
+		            id = cm->addContainerChain(path, containerclass, 
+		                    orig_object->getID());
+					*/
+		        }
+		        else
+		        {
+		            if (whoami == S_PLAYLIST){
+		                //path = p2i->convert(path);
+		            }else{
+		                //path = i2i->convert(path);
+					}
+            
+					log_py("ACO: adding container chain (path = %s, containerclass = %s)\n",path.c_str(), containerclass.c_str());
+		            id = cm->addContainerChain(path, containerclass);
+		        }
+				
+				log_py("ACO: Setting parent ID to %d\n", id);
+		        media_cds_obj->setParentID(id);
+
+		        if (!IS_CDS_ITEM_EXTERNAL_URL(media_cds_obj->getObjectType()) &&
+		            !IS_CDS_ITEM_INTERNAL_URL(media_cds_obj->getObjectType()))
+		        {
+					log_py("something abour RefIDs\n");
+		            /// \todo get hidden file setting from config manager?
+		            /// what about same stuff in content manager, why is it not used
+		            /// there?
+
+		            if (whoami == S_PLAYLIST)
+		            {
+		               /* if (pcd_id == INVALID_OBJECT_ID)
+		                    return JS_TRUE;
+
+		                /// \todo check why this if is needed?
+		                if (IS_CDS_ACTIVE_ITEM(cds_obj->getObjectType()))
+		                    cds_obj->setFlag(OBJECT_FLAG_PLAYLIST_REF);
+		                cds_obj->setRefID(pcd_id);
+						*/
+		            }
+		            else{
+						int i ;
+					    i = getIntAttribute(media, "id", INVALID_OBJECT_ID);
+						
+						
+		                media_cds_obj->setRefID(i);
+					}
+
+		            media_cds_obj->setFlag(OBJECT_FLAG_USE_RESOURCE_REF);
+		        }
+		        else if (IS_CDS_ITEM_EXTERNAL_URL(media_cds_obj->getObjectType()) || 
+		                 IS_CDS_ITEM_INTERNAL_URL(media_cds_obj->getObjectType()))
+		        {
+		            if ((whoami == S_PLAYLIST) &&
+		            (ConfigManager::getInstance()->
+		             getBoolOption(CFG_IMPORT_SCRIPTING_PLAYLIST_SCRIPT_LINK_OBJECTS)))
+		            {
+						/*
+		                cds_obj->setFlag(OBJECT_FLAG_PLAYLIST_REF);
+		                cds_obj->setRefID(orig_object->getID());
+						*/
+		            }
+		        }
+				
+		        media_cds_obj->setID(INVALID_OBJECT_ID);
+				log_py("ACO: cm, adding Obj\n");
+		        cm->addObject(media_cds_obj);
+				
+				 /* setting object ID as return value */
+        		return  PyInt_FromLong((int) id)      ;
         }
-        Py_RETURN_NONE;
+        
 }
+
+
+
 
 static PyObject* mediatomb_copyObject(PyObject *self, PyObject *args) {
         return Py_BuildValue("s", "42");
@@ -1826,6 +2274,7 @@ static PyTypeObject mediatomb_MediaTombType = {
 #ifndef PyMODINIT_FUNC/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
+
 PyMODINIT_FUNC
 init_mediatomb(void)
 {
@@ -1856,7 +2305,7 @@ Script::Script(Ref<Runtime> runtime) : Object()
         log_py("Pyton Engine, ver%s\n" , Py_GetVersion() );
 
         runtime->whoami = S_IMPORT ;
-        this->runtime = runtime;        
+        this->runtime = runtime;
 
         /* start up my python runtime */ 
         Py_Initialize();
@@ -1877,70 +2326,25 @@ void Script::load(zmm::String scriptPath)
 {
         /* if (script)
         JS_DestroyScript(cx, script);
-
-    script = _load((scriptPath));
+  	 	script = _load((scriptPath));
         */
         
         log_py("Loading %s\n" ,scriptPath.c_str() );
         importScript = scriptPath ;
 }
 
-
-/* do magic to pyobject */
 void Script::setPyObj(Ref<CdsObject> obj)
 {
-
-        runtime->setCdsObj(obj);
-        
-        String val;
-        int i;
-        
-        // int objectType = obj->getObjectType();
-                
-        // CdsObject
-        //setIntProperty(js, _("objectType"), objectType);
-        
-        i = obj->getID();
-        if (i != INVALID_OBJECT_ID){
-                //setIntProperty(js, _("id"), i);
-                log_py("id :  %d \n",i);
-        }
-        
-        i = obj->getParentID();                
-        if (i != INVALID_OBJECT_ID){
-                //setIntProperty(js, _("parentID"), i);
-                log_py("parent :  %d \n",i);
-        }
-        val = obj->getTitle();
-        if (val != nil){
-                //setProperty(js, _("title"), val);
-                log_py("title :  %s \n",val.c_str());
-        }
-        
-        val = obj->getClass();
-        if (val != nil){
-                //setProperty(js, _("upnpclass"), val);
-                log_py("upnpclass :  %s \n",val.c_str());
-        }
-        
-        val = obj->getLocation();
-        if (val != nil){
-                //setProperty(js, _("location"), val);
-                log_py("location :  %s \n",val.c_str());
-        }
-        
-        
-
-        
+	// stash the current CDS object being processed into the runtime 
+	// so it can be fetched by the python bindings.
+	runtime->setCdsObj(obj);
 }
 
 void Script::execute()
 {
-
-
-        log_py("EXECUTING\n");
-        PyObject* PyFileObject = PyFile_FromString((char *)importScript.c_str(), (char *)"r");
-        PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)importScript.c_str());
+	log_py("Executing python script : %s \n", importScript.c_str() );
+    PyObject* PyFileObject = PyFile_FromString((char *)importScript.c_str(), (char *)"r");
+    PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)importScript.c_str());
         
 }
 /*             

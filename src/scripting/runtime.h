@@ -64,6 +64,7 @@ public:
 #include "sync.h"
 #include "singleton.h"
 #include "cds_objects.h"
+//#include "script.h"
 
 typedef enum
 {
@@ -79,6 +80,9 @@ protected:
         // JSRuntime *rt;
         // int *rt;
         zmm::Ref<CdsObject> obj;
+		//zmm::Ref<Script> script;
+
+		zmm::Ref<CdsObject> processed;
 
 public:
     Runtime();
@@ -86,8 +90,16 @@ public:
     
     /// \brief Returns the runtime for script execution.
     //JSRuntime *getRT() { return rt; }
-    zmm::Ref<CdsObject> getCdsObj() { return obj; }
-    void setCdsObj(  zmm::Ref<CdsObject> cdsObj ) { obj = cdsObj; }
+    zmm::Ref<CdsObject> getCdsObj() { return obj; };
+    void setCdsObj(  zmm::Ref<CdsObject> cdsObj ) { obj = cdsObj; };
+	
+	zmm::Ref<CdsObject> getProcessedObject() { return processed ; }; 
+	void setProcessedObject(zmm::Ref<CdsObject> cdsObj) { processed = processed; };	
+	/*
+    zmm::Ref<Script> getScript() { return script; }
+    void setScript(  zmm::Ref<Script> cur_script ) { script = cur_script; }
+ 	*/
+
     script_class_t whoami ;
     
 };

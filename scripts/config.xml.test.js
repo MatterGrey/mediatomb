@@ -12,8 +12,8 @@
     </ui>
     <name>Cube</name>
     <udn>uuid:2981eca8-8d14-4eca-9561-4bc26d5a2bcd</udn>
-    <home>/home/matthew/Projects/mediatomb</home>
-    <webroot>/home/matthew/Projects/mediatomb/web</webroot>
+    <home>/home/alexs/Devel/mediatomb-git/mediatomb/</home>
+    <webroot>/home/alexs/Devel/mediatomb-git/mediatomb/web</webroot>
     <pc-directory upnp-hide="yes"/>
     <storage caching="yes">
       <sqlite3 enabled="yes">
@@ -53,7 +53,7 @@
   <import hidden-files="no">
     <scripting script-charset="UTF-8">
       <virtual-layout type="js">
-        <import-script>/home/matthew/Projects/mediatomb/mediatomb/scripts/js/import-test.js</import-script>
+        <import-script>/home/alexs/Devel/mediatomb-git/mediatomb/scripts/js/import-test.js</import-script>
         <!-- <dvd-script>/opt/mediatomb/usr/share/mediatomb/js/import-dvd.js</dvd-script> -->
       </virtual-layout>
     </scripting>

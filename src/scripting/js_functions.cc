@@ -204,7 +204,7 @@ js_addCdsObject(JSContext *cx, uintN argc, jsval *rval)
             if (!string_ok(containerclass) || containerclass == "undefined")
                 containerclass = nil;
         }
-        log_js("ctainerclass: [%s]", cont);
+        log_js("ctainerclass: [%s]\n", containerclass.c_str());
 
 
         if (self->whoami() == S_PLAYLIST)

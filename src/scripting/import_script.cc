@@ -144,7 +144,7 @@ ImportScript::~ImportScript()
 
 #include "import_script.h"
 #include "config_manager.h"
-
+#include "runtime.h"
 
 using namespace zmm;
 
@@ -166,16 +166,18 @@ ImportScript::ImportScript(Ref<Runtime> runtime) : Script(runtime)
 }
 void ImportScript::processCdsObject(Ref<CdsObject> obj, String rootpath)
 {
-
+	zmm::Ref<Runtime> runtime = Runtime::getInstance();
     processed = obj;
+	
+	runtime->setProcessedObject(obj);
+	
     try 
     {
         
         log_info("ImportScript::processCdsObject(%s)\n", rootpath.c_str());
-        setPyObj(obj);
-
-
-/*        JSObject *orig = JS_NewObject(cx, NULL, NULL, glob);
+		setPyObj(obj);
+/*
+        JSObject *orig = JS_NewObject(cx, NULL, NULL, glob);
         setObjectProperty(glob, _("orig"), orig);
         cdsObject2jsObject(obj, orig);
         setProperty(glob, _("object_root_path"), rootpath);
@@ -185,10 +187,12 @@ void ImportScript::processCdsObject(Ref<CdsObject> obj, String rootpath)
     }
     catch (Exception ex)
     {
+		runtime->setProcessedObject(nil);
         processed = nil;
         throw ex;
     }
 
+	runtime->setProcessedObject(nil);
     processed = nil;
 /*
     gc_counter++;

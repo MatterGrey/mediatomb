@@ -180,6 +180,7 @@ public:
     JSScript *common_script;
 */    
 public:
+   
     Script(zmm::Ref<Runtime> runtime);
     virtual ~Script();
 

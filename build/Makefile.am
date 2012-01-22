@@ -76,6 +76,7 @@ mediatomb_LDADD = \
     $(TAGLIB_LIBS) \
     $(LIBEXTRACTOR_LIBS) \
     $(JS_LIBS) \
+	$(PYTHON_LIBS) \
 	$(LIBMAGIC_LIBS) \
     $(ID3LIB_LIBS) \
     $(LIBEXIF_LIBS) \

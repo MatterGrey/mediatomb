@@ -12,8 +12,8 @@
     </ui>
     <name>Cube</name>
     <udn>uuid:2981eca8-8d14-4eca-9561-4bc26d5a2bcd</udn>
-    <home>/home/matthew/Projects/mediatomb</home>
-    <webroot>/home/matthew/Projects/mediatomb/web</webroot>
+    <home>/home/alexs/Devel/mediatomb-git/mediatomb/</home>
+    <webroot>/home/alexs/Devel/mediatomb-git/mediatomb/web</webroot>
     <pc-directory upnp-hide="yes"/>
     <storage caching="yes">
       <sqlite3 enabled="yes">
@@ -45,7 +45,7 @@
         <filmstrip-overlay>yes</filmstrip-overlay>
         <workaround-bugs>no</workaround-bugs>
       </ffmpegthumbnailer>
-      <mark-played-items enabled="yes" suppress-cds-updates="yes">
+      <mark-played-items enabled="no" suppress-cds-updates="yes">
         <string mode="prepend">*</string>
       </mark-played-items>
     </extended-runtime-options>
@@ -53,7 +53,7 @@
   <import hidden-files="no">
     <scripting script-charset="UTF-8">
       <virtual-layout type="py">
-        <import-script>/home/matthew/Projects/mediatomb/scripts/py/import.py</import-script>
+        <import-script>/home/alexs/Devel/mediatomb-git/mediatomb/scripts/py/import.py</import-script>
       </virtual-layout>
     </scripting>
     <mappings>

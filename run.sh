@@ -1,6 +1,6 @@
 case "$1" in
      js)
-			./build/mediatomb -D -c scripts/config.xml.test.js -a ~/Videos/
+			./build/mediatomb.js -D -c scripts/config.xml.test.js -a ~/Videos/
            ;;
      py)
 			./build/mediatomb -D -c scripts/config.xml.test -a ~/Videos/
