@@ -28,12 +28,17 @@
 #
 #*MT*
 
-AC_PREREQ(2.61)
+AC_PREREQ(2.68)
 AC_INIT([MediaTomb], [0.12.0], [jin@mediatomb.cc])
-AM_CONFIG_HEADER([autoconfig.h tombupnp/upnp/inc/upnpconfig.h])
+AC_CONFIG_HEADERS([autoconfig.h tombupnp/upnp/inc/upnpconfig.h])
 AC_CONFIG_AUX_DIR(configure_aux)
 AC_CONFIG_SRCDIR([src/common.h])
-AM_INIT_AUTOMAKE([1.9 -Wall])
+#AM_INIT_AUTOMAKE([1.9 -Wall])
+AM_INIT_AUTOMAKE()
+
+
+
+
 
 if test "x${prefix}" = "xNONE"; then
     prefix="${ac_default_prefix}"
@@ -1317,7 +1322,7 @@ if test "x$LIBMAGIC_STATUS" = xyes; then
     AC_LANG_SAVE
     AC_LANG_C
     AC_RUN_IFELSE(
-        AC_LANG_PROGRAM([[ #include <magic.h> ]],
+        [AC_LANG_PROGRAM([[ #include <magic.h> ]],
          [[
             struct magic_set *ms;
             ms = magic_open(MAGIC_MIME);
@@ -1327,7 +1332,7 @@ if test "x$LIBMAGIC_STATUS" = xyes; then
             magic_close(ms);
             return 0;
          ]]
-        ),
+        )],
         [
             AC_MSG_RESULT([no]);
         ],
@@ -1960,9 +1965,9 @@ dnl information.
     CFLAGS="$CFLAGS $INOTIFY_CFLAGS"
     AC_MSG_CHECKING([whether sys/inotify.h works])
     AC_RUN_IFELSE(
-        AC_LANG_PROGRAM([[#include <sys/inotify.h>]],
+        [AC_LANG_PROGRAM([[#include <sys/inotify.h>]],
                          [[return (-1 == inotify_init());]]
-                       ),
+                       )],
                 [
                     AC_MSG_RESULT([yes]); 
                     AC_DEFINE([SYS_INOTIFY_H_OK],[1],[sys/inotify.h exists and works on this system])],
@@ -1970,9 +1975,9 @@ dnl information.
                     AC_MSG_RESULT([no, using own inotify headers])
                     AC_MSG_CHECKING([whether inotify-nosys.h works on this system])
                     AC_RUN_IFELSE(
-                        AC_LANG_PROGRAM([[#include "src/inotify-nosys.h"]],
+                        [AC_LANG_PROGRAM([[#include "src/inotify-nosys.h"]],
                          [[return (-1 == inotify_init());]]
-                        ),
+                        )],
                         [
                             AC_MSG_RESULT([yes]);
                         ],

@@ -1,11 +1,11 @@
 Makefile.in
 *.in
 *~
-aclocal.m4
-autoconfig.h.in
 autom4te.cache/
 configure
-configure_aux/
+configure_aux/config.guess
+configure_aux/config.sub
+configure_aux/depcomp
 \#*\#
 *.o
 Makefile
