@@ -1,8 +1,6 @@
 Makefile.in
 *.in
 *~
-aclocal.m4
-autoconfig.h.in
 autom4te.cache/
 configure
 configure_aux/config.guess
