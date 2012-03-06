@@ -2330,12 +2330,17 @@ void Script::setPyObj(Ref<CdsObject> obj)
 	runtime->setCdsObj(obj);
 }
 
+/*PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)importScript.c_str()); */
+
 void Script::execute()
 {
 	//log_py("Executing python script : %s \n", importScript.c_str() );
     PyObject* PyFileObject = PyFile_FromString((char *)importScript.c_str(), (char *)"r");
-    PyRun_SimpleFile(PyFile_AsFile(PyFileObject), (char *)importScript.c_str());
-        
+    Py_INCREF(PyFileObject);
+    // close file when done.
+    PyRun_SimpleFileEx(PyFile_AsFile(PyFileObject), (char *)importScript.c_str(),1); 
+    Py_DECREF(PyFileObject);
+    log_py("Pyton , over\n" );
 }
 /*             
 Ref<CdsObject> Script::pyObject2cdsObject(PyObject *py, zmm::Ref<CdsObject> pcd)
